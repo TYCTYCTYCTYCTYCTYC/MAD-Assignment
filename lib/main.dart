@@ -14,31 +14,47 @@ class HomeSHARE extends StatefulWidget {
 }
 
 class _HomeSHAREState extends State<HomeSHARE> {
-  int active_index = 0;
-
   @override
   Widget build(BuildContext context) {
     //Size size = MediaQuery.of(context).size;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-            leading: const Icon(Icons.menu, size: 50),
-            title: const Text('HomeSHARE', style: TextStyle(fontSize: 30)),
-            actions: const [Icon(Icons.account_circle, size: 50)],
-            centerTitle: true,
-            backgroundColor: Colors.blue),
-        // body: Center(child: Image.asset('assets/images/tio.png')),
-        body: Column(
+      home: Home(),
+    );
+  }
+}
+
+class Home extends StatefulWidget {
+  Home({Key? key}) : super(key: key);
+
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  int active_index = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: const Icon(Icons.menu, size: 50),
+        title: const Text('HomeSHARE', style: TextStyle(fontSize: 30)),
+        actions: const [Icon(Icons.account_circle, size: 50)],
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+      ),
+      body: SingleChildScrollView(
+        reverse: true,
+        child: Column(
           children: <Widget>[
-            // Center(child: Image.asset('assets/images/tio.png')),
             Image.asset('assets/images/tio.png'),
             SizedBox(
-              // height: min(MediaQuery.of(context).size.height,
-              // MediaQuery.of(context).size.width),
-              height: 500,
+              height: max(MediaQuery.of(context).size.height,
+                  MediaQuery.of(context).size.width),
               child: GridView.count(
+                physics: NeverScrollableScrollPhysics(),
                 crossAxisCount: 3,
                 children: List.generate(9, (index) {
                   return Container(
@@ -57,26 +73,25 @@ class _HomeSHAREState extends State<HomeSHARE> {
                   );
                 }),
               ),
-            )
+            ),
           ],
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.brush), label: 'Business'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_month), label: 'School'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.person), label: 'Settings'),
-          ],
-          currentIndex: active_index,
-          onTap: (int index) {
-            setState(() {
-              active_index = index;
-            });
-          },
-        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.brush), label: 'Business'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month), label: 'School'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Settings'),
+        ],
+        currentIndex: active_index,
+        onTap: (int index) {
+          setState(() {
+            active_index = index;
+          });
+        },
       ),
     );
   }
