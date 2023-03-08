@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -28,29 +30,34 @@ class _HomeSHAREState extends State<HomeSHARE> {
             centerTitle: true,
             backgroundColor: Colors.blue),
         // body: Center(child: Image.asset('assets/images/tio.png')),
-        body: Stack(
+        body: Column(
           children: <Widget>[
             // Center(child: Image.asset('assets/images/tio.png')),
             Image.asset('assets/images/tio.png'),
-            GridView.count(
-              crossAxisCount: 3,
-              children: List.generate(9, (index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 2.0,
+            SizedBox(
+              // height: min(MediaQuery.of(context).size.height,
+              // MediaQuery.of(context).size.width),
+              height: 500,
+              child: GridView.count(
+                crossAxisCount: 3,
+                children: List.generate(9, (index) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 2.0,
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Box ${index + 1}',
-                      style: TextStyle(fontSize: 20.0),
+                    child: Center(
+                      child: Text(
+                        'Box ${index + 1}',
+                        style: TextStyle(fontSize: 20.0),
+                      ),
                     ),
-                  ),
-                );
-              }),
-            ),
+                  );
+                }),
+              ),
+            )
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
