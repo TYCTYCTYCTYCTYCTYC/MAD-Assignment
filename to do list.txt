@@ -17,3 +17,11 @@ remove navigation bars or add navigation for pause and leaderboard
 
 log in page:
 how to do login
+
+miscellaneous
+how to make screen show top most part of page when entering
+
+questions/issues:
+missclick gameover?
+time out gameover?
+what about scores?
