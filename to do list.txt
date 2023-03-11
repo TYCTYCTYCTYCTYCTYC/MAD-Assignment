@@ -25,3 +25,4 @@ questions/issues:
 missclick gameover?
 time out gameover?
 what about scores?
+pause
