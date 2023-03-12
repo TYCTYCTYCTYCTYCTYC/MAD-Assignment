@@ -3,6 +3,78 @@ import 'dart:math';
 // import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
+import 'package:path/path.dart' as path;
+import 'package:sqflite/sqflite.dart';
+
+class LeaderboardItem {
+  final String name;
+  final DateTime date;
+  final int score;
+
+  const LeaderboardItem({
+    required this.name,
+    required this.date,
+    required this.score,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'date': date,
+      'score': score,
+    };
+  }
+
+  // Implement toString to make it easier to see information about
+  // each dog when using the print statement.
+  @override
+  String toString() {
+    return 'Dog{name: $name, date: $date, score: $score}';
+  }
+}
+
+late final database;
+
+Future<Database> startDb() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  database = openDatabase(
+    path.join(await getDatabasesPath(), 'Leaderboard.db'),
+    onCreate: (db, version) {
+      return db.execute(
+        'CREATE TABLE IF NOT EXISTS dogs(name TEXT PRIMARY KEY, date DATE, score INTEGER)',
+      );
+    },
+    version: 1,
+  );
+
+  return database;
+}
+
+Future<void> insertLeaderboardItem(LeaderboardItem leaderboardItem) async {
+  final db = await database;
+
+  await db.insert(
+    'Leaderboard',
+    leaderboardItem.toMap(),
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+}
+
+Future<List<LeaderboardItem>> leaderboard() async {
+  final db = await database;
+
+  final List<Map<String, dynamic>> maps = await db.query('Leaderboard');
+
+  return List.generate(maps.length, (i) {
+    return LeaderboardItem(
+      name: maps[i]['id'],
+      date: maps[i]['name'],
+      score: maps[i]['age'],
+    );
+  });
+}
+
 void main() {
   runApp(
       const MaterialApp(debugShowCheckedModeBanner: false, home: MainPage()));
@@ -268,6 +340,12 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   @override
+  void initState() {
+    super.initState();
+    startDb();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -326,6 +404,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    var lb = LeaderboardItem(
+      name: "tyc",
+      date: DateTime.now(),
+      score: 35,
+    );
+
+    insertLeaderboardItem(lb);
+
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'test`',
@@ -340,6 +426,40 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Center(child: Text('<insert leaderboard>')),
+            FutureBuilder<List<LeaderboardItem>>(
+              future: leaderboard(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  List<LeaderboardItem>? leaderboard = snapshot.data;
+                  return GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: leaderboard?.length,
+                    itemBuilder: (context, index) {
+                      LeaderboardItem item = leaderboard![index];
+                      return GridTile(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('${index + 1}'),
+                            Text(item.name),
+                            Text(item.date.toString()),
+                            Text(item.score.toString()),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error fetching leaderboard');
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
             Padding(
               padding: EdgeInsets.all(15), //apply padding to all four sides
               child: Center(
