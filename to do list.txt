@@ -2,12 +2,6 @@ main page:
 choice for choosing number of grids
 choice for viewing scoreboard
 
-game page:
-count down timer for starting game and clicking highlighted cells
-event handling
-images for prompting clicks
-time out and game over (timer gets faster over time)
-
 scoreboard page:
 fire base
 
