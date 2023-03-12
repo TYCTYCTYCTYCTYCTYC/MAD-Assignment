@@ -278,37 +278,54 @@ class _MainPageState extends State<MainPage> {
             //   centerTitle: true,
             //   backgroundColor: Colors.blue,
             // ),
-            body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+            body: Stack(
           children: <Widget>[
-            const Center(
-                child: Text('Mishy Panic!', style: TextStyle(fontSize: 60))),
-            Padding(
-              padding: EdgeInsets.all(15), //apply padding to all four sides
-              child: Center(
-                  child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const HomeSHARE()),
-                        );
-                      },
-                      child: const Center(child: Text('Start Game')))),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Center(
+                    child:
+                        Text('Mishy Panic!', style: TextStyle(fontSize: 60))),
+                Padding(
+                  padding: EdgeInsets.all(15), //apply padding to all four sides
+                  child: Center(
+                      child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomeSHARE()),
+                            );
+                          },
+                          child: const Center(child: Text('Start Game')))),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(15), //apply padding to all four sides
+                  child: Center(
+                      child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const LeaderboardPage()),
+                            );
+                          },
+                          child: const Center(child: Text('LeaderBoards')))),
+                ),
+              ],
             ),
-            Padding(
-              padding: EdgeInsets.all(15), //apply padding to all four sides
-              child: Center(
-                  child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LeaderboardPage()),
-                        );
-                      },
-                      child: const Center(child: Text('LeaderBoards')))),
-            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Image.asset(
+                'assets/images/tio.png',
+                width: max(MediaQuery.of(context).size.width / 3,
+                    MediaQuery.of(context).size.height / 3),
+                height: max(MediaQuery.of(context).size.width / 3,
+                    MediaQuery.of(context).size.height / 3),
+              ),
+            )
           ],
         )));
   }
