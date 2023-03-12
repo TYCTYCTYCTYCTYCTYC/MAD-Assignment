@@ -1,8 +1,10 @@
 main page:
-choice for choosing number of grids
-choice for viewing scoreboard
+level selection
+tio!
+bgm?
 
 scoreboard page:
+nick name?
 fire base
 
 log in page:

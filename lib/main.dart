@@ -38,7 +38,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
   late Timer timer;
   double _countdownTime = 5.0;
-  bool _showCountdown = false;
 
   late TextSpan span = TextSpan(
       text: 'time: $_countdownTime',
@@ -56,24 +55,28 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
   bool _isGreyedOut = true, isclick = false;
   int _countdownSeconds = 3;
+  late int _startCountdownSeconds;
 
 // final formatter = DurationFormatter(DurationFormatterBuilder()
 //       ..alwaysUseSingularUnits = true
 //       ..zeroPadDays = false
 //       ..fractionalDigits = 2);
 
+  String format(int _countdownSeconds) {
+    if (this._countdownSeconds == _startCountdownSeconds) {
+      return "Ready ...";
+    } else if (this._countdownSeconds == 1) {
+      return "Start!";
+    } else {
+      return (_countdownSeconds - 1).toString();
+    }
+  }
+
   void _startTimer() {
     timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
       setState(() {
         if (_countdownTime <= 0) {
-          _showCountdown = true;
-          //get score and publish to leaderboard if within top 25
-          timer.cancel();
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LeaderboardPage()),
-          );
+          endGame();
         } else {
           _countdownTime -= 0.01;
         }
@@ -82,6 +85,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
   }
 
   void _startCountdown() {
+    _countdownSeconds += 2;
     setState(() {
       _isGreyedOut = true;
       isclick = true;
@@ -97,6 +101,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
         setState(() {
           _isGreyedOut = false;
           // _countdownSeconds = 10;
+          image_status[remaining[0]] = 1;
           _startTimer();
         });
       }
@@ -118,10 +123,9 @@ class _HomeSHAREState extends State<HomeSHARE> {
   void initState() {
     super.initState();
     remaining.shuffle();
-    image_status[remaining[0]] = 1;
     tp.layout();
     textHeight = tp.size.height;
-
+    _startCountdownSeconds = _countdownSeconds + 2;
     _startCountdown();
   }
 
@@ -187,13 +191,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                             image_status[remaining[0]] = 1;
                                           } else {
                                             //get score and publish to leaderboard if within top 25
-                                            timer.cancel();
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const LeaderboardPage()),
-                                            );
+                                            endGame();
                                           }
                                         });
 
@@ -249,7 +247,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '$_countdownSeconds',
+                          format(_countdownSeconds),
                           style: const TextStyle(
                               fontSize: 64, color: Colors.white),
                         ),
@@ -275,43 +273,44 @@ class _MainPageState extends State<MainPage> {
         debugShowCheckedModeBanner: false,
         title: 'test`',
         home: Scaffold(
-            appBar: AppBar(
-              title: const Text('test2', style: TextStyle(fontSize: 30)),
-              centerTitle: true,
-              backgroundColor: Colors.blue,
-            ),
+            // appBar: AppBar(
+            //   title: const Text('Mishy Panic!', style: TextStyle(fontSize: 30)),
+            //   centerTitle: true,
+            //   backgroundColor: Colors.blue,
+            // ),
             body: Column(
-              children: <Widget>[
-                const Center(child: Text('GAME!!')),
-                Padding(
-                  padding: EdgeInsets.all(15), //apply padding to all four sides
-                  child: Center(
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeSHARE()),
-                            );
-                          },
-                          child: const Center(child: Text('Start Game')))),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(15), //apply padding to all four sides
-                  child: Center(
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LeaderboardPage()),
-                            );
-                          },
-                          child: const Center(child: Text('LeaderBoards')))),
-                ),
-              ],
-            )));
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Center(
+                child: Text('Mishy Panic!', style: TextStyle(fontSize: 60))),
+            Padding(
+              padding: EdgeInsets.all(15), //apply padding to all four sides
+              child: Center(
+                  child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HomeSHARE()),
+                        );
+                      },
+                      child: const Center(child: Text('Start Game')))),
+            ),
+            Padding(
+              padding: EdgeInsets.all(15), //apply padding to all four sides
+              child: Center(
+                  child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LeaderboardPage()),
+                        );
+                      },
+                      child: const Center(child: Text('LeaderBoards')))),
+            ),
+          ],
+        )));
   }
 }
 
@@ -331,29 +330,32 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         debugShowCheckedModeBanner: false,
         title: 'test`',
         home: Scaffold(
-            appBar: AppBar(
-              title: const Text('test2', style: TextStyle(fontSize: 30)),
-              centerTitle: true,
-              backgroundColor: Colors.blue,
+            // appBar: AppBar(
+            //   title: const Text('test2', style: TextStyle(fontSize: 30)),
+            //   centerTitle: true,
+            //   backgroundColor: Colors.blue,
+            // ),
+            body: Center(
+                child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Center(child: Text('<insert leaderboard>')),
+            Padding(
+              padding: EdgeInsets.all(15), //apply padding to all four sides
+              child: Center(
+                  child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const MainPage()),
+                        );
+                      },
+                      child:
+                          const Center(child: Text('Go back to Main Page')))),
             ),
-            body: Column(
-              children: <Widget>[
-                const Center(child: Text('<insert leaderboard>')),
-                Padding(
-                  padding: EdgeInsets.all(15), //apply padding to all four sides
-                  child: Center(
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const MainPage()),
-                            );
-                          },
-                          child: const Center(child: Text('Main Page')))),
-                ),
-              ],
-            )));
+          ],
+        ))));
   }
 }
 
