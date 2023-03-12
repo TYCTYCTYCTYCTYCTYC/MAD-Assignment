@@ -11,18 +11,8 @@ time out and game over (timer gets faster over time)
 scoreboard page:
 fire base
 
-style
-change game name to not HomeSHARE
-remove navigation bars or add navigation for pause and leaderboard
-
 log in page:
-how to do login
+how to do login? required?
 
-miscellaneous
-how to make screen show top most part of page when entering
-
-questions/issues:
-missclick gameover?
-time out gameover?
-what about scores?
-pause
+others:
+remove appbar and add singular pause button on top right
