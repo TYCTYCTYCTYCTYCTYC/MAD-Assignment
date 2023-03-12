@@ -36,6 +36,13 @@ class _HomeSHAREState extends State<HomeSHARE> {
     "assets/images/mishy_sadge.png"
   ];
 
+  TextSpan span = TextSpan(
+      text: 'Hello, world!',
+      style: TextStyle(fontSize: 16, color: Colors.black));
+  late TextPainter tp = TextPainter(
+      text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+  late double textHeight;
+
   late List<double> borders =
       List.generate(grid_count * grid_count, (index) => 0);
   late List<int> image_status =
@@ -72,6 +79,9 @@ class _HomeSHAREState extends State<HomeSHARE> {
     super.initState();
     remaining.shuffle();
     image_status[remaining[0]] = 1;
+    tp.layout();
+    textHeight = tp.size.height;
+
     _startCountdown();
   }
 
@@ -82,113 +92,120 @@ class _HomeSHAREState extends State<HomeSHARE> {
         title: "Mishy Panic!",
         home: Scaffold(
           appBar: AppBar(
-            // leading: const Icon(Icons.menu, size: 50),
             title: const Text('Mishy Panic!', style: TextStyle(fontSize: 30)),
             actions: const [Icon(Icons.pause, size: 50)],
             centerTitle: true,
             backgroundColor: Colors.blue,
           ),
-          body: Stack(children: <Widget>[
-            Flexible(
-                flex: 100,
-                fit: FlexFit.tight,
-                child: Container(
-                  child: Builder(builder: (BuildContext context) {
-                    return Center(
-                        child: SizedBox(
-                      height: min(
-                          MediaQuery.of(context).size.height -
-                              AppBar().preferredSize.height,
-                          MediaQuery.of(context).size.width),
-                      width: min(
-                          MediaQuery.of(context).size.height -
-                              AppBar().preferredSize.height,
-                          MediaQuery.of(context).size.width),
-                      child: GridView.count(
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: grid_count,
-                        children:
-                            List.generate(grid_count * grid_count, (index) {
-                          return Material(
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  if (index == remaining[0]) {
+          body: Stack(
+              //alignment: Alignment.center,
+              children: <Widget>[
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      RichText(text: span),
+                      Builder(builder: (BuildContext context) {
+                        return Center(
+                            child: SizedBox(
+                          height: min(
+                              MediaQuery.of(context).size.height -
+                                  AppBar().preferredSize.height -
+                                  textHeight,
+                              MediaQuery.of(context).size.width),
+                          width: min(
+                              MediaQuery.of(context).size.height -
+                                  AppBar().preferredSize.height -
+                                  textHeight,
+                              MediaQuery.of(context).size.width),
+                          child: GridView.count(
+                            crossAxisCount: grid_count,
+                            children:
+                                List.generate(grid_count * grid_count, (index) {
+                              return Material(
+                                child: InkWell(
+                                  onTap: () {
                                     setState(() {
-                                      score++;
-                                      image_status[index] = 2;
-                                      round++;
-                                      remaining.removeAt(0);
-                                      if (!remaining.isEmpty == true) {
-                                        image_status[remaining[0]] = 1;
-                                      } else {
-                                        //get score and publish to leaderboard if within top 25
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const LeaderboardPage()),
-                                        );
+                                      if (index == remaining[0]) {
+                                        setState(() {
+                                          score++;
+                                          image_status[index] = 2;
+                                          round++;
+                                          remaining.removeAt(0);
+                                          if (!remaining.isEmpty == true) {
+                                            image_status[remaining[0]] = 1;
+                                          } else {
+                                            //get score and publish to leaderboard if within top 25
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const LeaderboardPage()),
+                                            );
+                                          }
+                                        });
+
+                                        Future.delayed(
+                                                Duration(milliseconds: 150))
+                                            .then((value) {
+                                          setState(() {
+                                            image_status[index] = 3;
+                                          });
+                                        });
                                       }
                                     });
-
-                                    Future.delayed(Duration(milliseconds: 150))
-                                        .then((value) {
-                                      setState(() {
-                                        image_status[index] = 3;
-                                      });
-                                    });
-                                  }
-                                });
-                              },
-                              child: ClipRRect(
-                                  child: Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image:
-                                        AssetImage(images[image_status[index]]),
-                                    fit: BoxFit.cover,
-                                  ),
+                                  },
+                                  child: ClipRRect(
+                                      child: Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: AssetImage(
+                                            images[image_status[index]]),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  )),
                                 ),
-                              )),
-                            ),
-                          );
-                        }),
-                      ),
-                    ));
-                  }),
-                )
-                // Padding(
-                //     padding: EdgeInsets.all(15),
-                //     child: ElevatedButton(
-                //         onPressed: () {
-                //           Navigator.pop(context);
-                //         },
-                //         child: const Text('Exit Game')))
+                              );
+                            }),
+                          ),
+                        ));
+                      })
+                      // Padding(
+                      //     padding: EdgeInsets.all(15),
+                      //     child: ElevatedButton(
+                      //         onPressed: () {
+                      //           Navigator.pop(context);
+                      //         },
+                      //         child: const Text('Exit Game')))
+                    ],
+                  ),
                 ),
-            if (_isGreyedOut)
-              SizedBox(
-                height: MediaQuery.of(context).size.height -
-                    AppBar().preferredSize.height,
-                child: ModalBarrier(
-                  dismissible: false,
-                  color: Colors.black.withOpacity(0.7),
-                ),
-              ),
-            if (_isGreyedOut)
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$_countdownSeconds',
-                      style: TextStyle(fontSize: 64, color: Colors.white),
+                if (_isGreyedOut)
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height -
+                        AppBar().preferredSize.height,
+                    child: ModalBarrier(
+                      dismissible: false,
+                      color: Colors.black.withOpacity(0.7),
                     ),
-                  ],
-                ),
-              ),
-          ]),
+                  ),
+                if (_isGreyedOut)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$_countdownSeconds',
+                          style: const TextStyle(
+                              fontSize: 64, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+              ]),
         ));
   }
 }
@@ -286,6 +303,5 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             )));
   }
 }
-
 
 //ctrl shift p > flutter:launch emulator > device
