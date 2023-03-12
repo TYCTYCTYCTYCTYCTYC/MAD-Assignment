@@ -1,7 +1,79 @@
 import 'dart:async';
 import 'dart:math';
-// import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+// import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'dart:io';
+
+// class DatabaseHelper {
+//   static final DatabaseHelper instance = DatabaseHelper._init();
+
+//   static Database? _database;
+
+//   DatabaseHelper._init();
+
+//   Future<Database> get database async {
+//     if (_database != null) return _database!;
+
+//     _database = await _initDB('Leaderboard.db');
+//     return _database!;
+//   }
+
+//   Future<Database> _initDB(String filePath) async {
+//     final dbPath = await getDatabasesPath();
+//     final path = join(dbPath, filePath);
+
+//     return await openDatabase(path, version: 1, onCreate: _createDB);
+//   }
+
+//   Future<void> _createDB(Database db, int version) async {
+//     //final db = await DatabaseHelper.instance.database;
+//     await db.execute('DROP TABLE IF EXISTS Leaderboard');
+
+//     await db.execute('''
+// CREATE TABLE Leaderboard (
+//   name TEXT PRIMARY KEY,
+//   score INTEGER,
+// date DATE,
+// time TIME
+// )
+// ''');
+//   }
+// }
+
+class DatabaseHelper {
+  static final DatabaseHelper instance = DatabaseHelper._init();
+
+  static Database? _database;
+
+  DatabaseHelper._init();
+
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+
+    _database = await _initDB('leaderboard.db');
+    return _database!;
+  }
+
+  Future<Database> _initDB(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = Directory(dbPath).path + '/' + filePath;
+
+    return await openDatabase(path, version: 1, onCreate: _createDB);
+  }
+
+  Future<void> _createDB(Database db, int version) async {
+    await db.execute('DROP TABLE IF EXISTS Leaderboard');
+    await db.execute('''
+CREATE TABLE Leaderboard (
+  name TEXT PRIMARY KEY,
+  score INTEGER,
+  date TEXT,
+  time TEXT
+)
+''');
+  }
+}
 
 void main() {
   runApp(
@@ -22,12 +94,13 @@ class _HomeSHAREState extends State<HomeSHARE> {
   int score = 0;
   double game_timer = 5;
   double active_border = 5.0;
+  late DateTime endTime;
   final double appBarHeight = AppBar().preferredSize.height;
   //final double bottomNavigationBarHeight = kBottomNavigationBarHeight;
 
-  late final Size size = MediaQuery.of(context).size;
-  late final double height = size.height - appBarHeight;
-  late final double width = size.width;
+  // late final Size size = MediaQuery.of(context).size;
+  // late final double height = size.height - appBarHeight;
+  // late final double width = size.width;
 
   List<String> images = [
     "assets/images/no_mishy.png",
@@ -110,6 +183,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
   void endGame() {
     //stop countdown
+    endTime = DateTime.now();
     timer.cancel();
 
     //navigate to leaderboard
@@ -187,7 +261,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                           score++;
                                           image_status[index] = 2;
                                           remaining.removeAt(0);
-                                          if (!remaining.isEmpty == true) {
+                                          if (remaining.isNotEmpty == true) {
                                             image_status[remaining[0]] = 1;
                                           } else {
                                             //get score and publish to leaderboard if within top 25
@@ -324,22 +398,75 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   //set score to leaderboard if top 25
 
+  Future<int> myAsyncFunction(String name, int score) async {
+    DateTime now = DateTime.now();
+
+    final db = await DatabaseHelper.instance.database;
+
+    final scoreMap = {
+      'name': name,
+      'score': score,
+      'date': now.toIso8601String(), // convert DateTime to ISO-8601 string
+    };
+
+    //insert, sort then delete until 25 left
+    return await db.insert('Leaderboard', scoreMap);
+  }
+
   @override
   Widget build(BuildContext context) {
+    //prompt user name
+    String name = "TYC";
+    myAsyncFunction(name, 100);
+    late Future<List<Map<String, dynamic>>> _leaderboardData;
+
+    Future<List<Map<String, dynamic>>> getLeaderboardData() async {
+      final Database db = await DatabaseHelper.instance.database;
+      return await db.query('Leaderboard');
+    }
+
+    @override
+    void initState() {
+      super.initState();
+      // _leaderboardData = getLeaderboardData();
+    }
+
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'test`',
         home: Scaffold(
-            // appBar: AppBar(
-            //   title: const Text('test2', style: TextStyle(fontSize: 30)),
-            //   centerTitle: true,
-            //   backgroundColor: Colors.blue,
-            // ),
             body: Center(
                 child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Center(child: Text('<insert leaderboard>')),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: getLeaderboardData(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                if (snapshot.hasData) {
+                  final List<Map<String, dynamic>> data = snapshot.data!;
+                  return GridView.count(
+                    crossAxisCount: 2,
+                    children: List.generate(data.length, (index) {
+                      return Card(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(data[index]['name']),
+                            SizedBox(height: 10),
+                            Text(data[index]['score'].toString()),
+                          ],
+                        ),
+                      );
+                    }),
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
             Padding(
               padding: EdgeInsets.all(15), //apply padding to all four sides
               child: Center(

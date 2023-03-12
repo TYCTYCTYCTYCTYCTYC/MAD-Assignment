@@ -12,3 +12,4 @@ how to do login? required?
 
 others:
 remove appbar and add singular pause button on top right
+change app icon
