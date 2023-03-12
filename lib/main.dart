@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-
+// import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -18,9 +18,9 @@ class HomeSHARE extends StatefulWidget {
 class _HomeSHAREState extends State<HomeSHARE> {
   int active_index = 0;
   int grid_count = 2;
-  int cur_index = 0;
+  // int cur_index = 0;
   int score = 0;
-  int round = 1;
+  double game_timer = 5;
   double active_border = 5.0;
   final double appBarHeight = AppBar().preferredSize.height;
   //final double bottomNavigationBarHeight = kBottomNavigationBarHeight;
@@ -36,8 +36,12 @@ class _HomeSHAREState extends State<HomeSHARE> {
     "assets/images/mishy_sadge.png"
   ];
 
-  TextSpan span = TextSpan(
-      text: 'Hello, world!',
+  late Timer timer;
+  double _countdownTime = 5.0;
+  bool _showCountdown = false;
+
+  late TextSpan span = TextSpan(
+      text: 'time: $_countdownTime',
       style: TextStyle(fontSize: 16, color: Colors.black));
   late TextPainter tp = TextPainter(
       text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
@@ -53,13 +57,37 @@ class _HomeSHAREState extends State<HomeSHARE> {
   bool _isGreyedOut = true, isclick = false;
   int _countdownSeconds = 3;
 
+// final formatter = DurationFormatter(DurationFormatterBuilder()
+//       ..alwaysUseSingularUnits = true
+//       ..zeroPadDays = false
+//       ..fractionalDigits = 2);
+
+  void _startTimer() {
+    timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+      setState(() {
+        if (_countdownTime <= 0) {
+          _showCountdown = true;
+          //get score and publish to leaderboard if within top 25
+          timer.cancel();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const LeaderboardPage()),
+          );
+        } else {
+          _countdownTime -= 0.01;
+        }
+      });
+    });
+  }
+
   void _startCountdown() {
     setState(() {
       _isGreyedOut = true;
       isclick = true;
     });
 
-    Timer.periodic(Duration(seconds: 1), (timer) {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _countdownSeconds--;
       });
@@ -68,10 +96,22 @@ class _HomeSHAREState extends State<HomeSHARE> {
         timer.cancel();
         setState(() {
           _isGreyedOut = false;
-          _countdownSeconds = 10;
+          // _countdownSeconds = 10;
+          _startTimer();
         });
       }
     });
+  }
+
+  void endGame() {
+    //stop countdown
+    timer.cancel();
+
+    //navigate to leaderboard
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LeaderboardPage()),
+    );
   }
 
   @override
@@ -84,6 +124,12 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
     _startCountdown();
   }
+
+  // @override
+  // void dispose() {
+  //   _timer.cancel();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +151,12 @@ class _HomeSHAREState extends State<HomeSHARE> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      RichText(text: span),
+                      // RichText(text: span),
+                      Text(
+                        _countdownTime.toStringAsFixed(2),
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
                       Builder(builder: (BuildContext context) {
                         return Center(
                             child: SizedBox(
@@ -131,12 +182,12 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                         setState(() {
                                           score++;
                                           image_status[index] = 2;
-                                          round++;
                                           remaining.removeAt(0);
                                           if (!remaining.isEmpty == true) {
                                             image_status[remaining[0]] = 1;
                                           } else {
                                             //get score and publish to leaderboard if within top 25
+                                            timer.cancel();
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
@@ -272,6 +323,8 @@ class LeaderboardPage extends StatefulWidget {
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
+  //set score to leaderboard if top 25
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
