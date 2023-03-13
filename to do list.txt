@@ -6,6 +6,7 @@ bgm?
 scoreboard page:
 nick name?
 fire base
+if go to leaderboard from main page, no need enter record
 
 log in page:
 how to do login? required?
@@ -13,3 +14,7 @@ how to do login? required?
 others:
 remove appbar and add singular pause button on top right
 resolve timer issue where it is not actually 5 seconds
+back issue after playing and going to leaderboard
+page not scrollable issue when keyboard is open
+image loading slow issue
+transparent pixels interfering with button presses issue
