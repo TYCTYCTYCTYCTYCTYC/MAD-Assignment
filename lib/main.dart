@@ -1,9 +1,89 @@
 import 'dart:async';
 import 'dart:math';
-// import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
 
-void main() {
+class Leaderboard {
+  static final _databaseName = 'leaderboard.db';
+  static final _databaseVersion = 1;
+  static Database? _database;
+
+  static final table = 'leaderboard';
+  // static final String name;
+  // static final DateTime date;
+  // static final int score;
+
+  Leaderboard._privateConstructor();
+  static final Leaderboard instance = Leaderboard._privateConstructor();
+
+  Future<Database> get database async {
+    if (_database != null) {
+      return _database!;
+    }
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  Future<Database> _initDatabase() async {
+    final databasesPath = await getDatabasesPath();
+    final path = p.join(databasesPath, _databaseName);
+    return await openDatabase(path,
+        version: _databaseVersion, onCreate: _onCreate);
+  }
+
+  Future _onCreate(Database db, int version) async {
+    //come back to date later
+    await db.execute('''
+          CREATE TABLE Leaderboard (
+          name TEXT PRIMARY KEY,
+          date DATE NOT NULL, 
+          score INTEGER NOT NULL
+        )
+          ''');
+  }
+
+  static Future<List<Map<String, dynamic>>> insertAndQuery(
+      String name, DateTime date, int score) async {
+    await _database!.insert(table, {
+      "name": name,
+      "date": date.toIso8601String().substring(0, 10),
+      "score": score,
+    });
+
+    final List<Map<String, dynamic>> results = await _database!.query(
+      table,
+      orderBy: '$score DESC, $date DESC',
+    );
+
+    if (results.length > 25) {
+      final idsToDelete = results
+          .sublist(25)
+          .map((result) => result["name"] as String)
+          .toList();
+      await _database!.delete(
+        table,
+        where: 'name IN (${idsToDelete.map((_) => '?').join(', ')})',
+        whereArgs: idsToDelete,
+      );
+    }
+
+    return results;
+  }
+}
+
+void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+// // Open the database and store the reference.
+//   final database = openDatabase(
+//     // Set the path to the database. Note: Using the `join` function from the
+//     // `path` package is best practice to ensure the path is correctly
+//     // constructed for each platform.
+//     p.join(await getDatabasesPath(), 'Leaderboard.db'),
+//   );
+  WidgetsFlutterBinding.ensureInitialized();
+  final db = await Leaderboard.instance.database;
+
   runApp(
       const MaterialApp(debugShowCheckedModeBanner: false, home: MainPage()));
 }
@@ -17,7 +97,7 @@ class HomeSHARE extends StatefulWidget {
 
 class _HomeSHAREState extends State<HomeSHARE> {
   int active_index = 0;
-  int grid_count = 4;
+  int grid_count = 3;
   // int cur_index = 0;
   int score = 0;
   double game_timer = 5;
@@ -339,7 +419,14 @@ class LeaderboardPage extends StatefulWidget {
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
-  //set score to leaderboard if top 25
+  //insert
+  //delete those that are not first 25 in sorted order by score desc, date desc
+  //read first 25 in same sorted order
+
+  Future<List<Map<String, dynamic>>> results =
+      Leaderboard.insertAndQuery("tyc", DateTime.now(), 140);
+
+  //display those 25 records, if not 25 display those records only
 
   @override
   Widget build(BuildContext context) {
@@ -357,6 +444,65 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Center(child: Text('<insert leaderboard>')),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: results,
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                // Check if the query results have been loaded
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                // Extract the query results from the snapshot
+                final results = snapshot.data;
+
+                // Build the table rows from the query results
+                final tableRows = List<TableRow>.generate(
+                  results.length,
+                  (int index) => TableRow(
+                    children: <Widget>[
+                      TableCell(
+                        child: Text(results[index]['name']),
+                      ),
+                      TableCell(
+                        child: Text(results[index]['date'].toString()),
+                      ),
+                      TableCell(
+                        child: Text(results[index]['score'].toString()),
+                      ),
+                    ],
+                  ),
+                );
+
+                // Build the table widget with the rows
+                return Table(
+                  columnWidths: {
+                    0: FlexColumnWidth(2.0),
+                    1: FlexColumnWidth(1.0),
+                    2: FlexColumnWidth(1.0),
+                  },
+                  border: TableBorder.all(),
+                  children: [
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey[100],
+                      ),
+                      children: <Widget>[
+                        TableCell(
+                          child: Text('Name'),
+                        ),
+                        TableCell(
+                          child: Text('Date'),
+                        ),
+                        TableCell(
+                          child: Text('Score'),
+                        ),
+                      ],
+                    ),
+                    ...tableRows,
+                  ],
+                );
+              },
+            ),
             Padding(
               padding: EdgeInsets.all(15), //apply padding to all four sides
               child: Center(
