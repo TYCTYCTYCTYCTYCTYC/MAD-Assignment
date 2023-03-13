@@ -3,8 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:vibration/vibration.dart';
 
 int total_score = 0;
+String? name = null;
+bool played = false;
 
 class Leaderboard {
   static final _databaseName = 'leaderboard.db';
@@ -405,67 +411,122 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  final nameController = TextEditingController();
+  // final nameFocusNode = FocusNode();
+  bool pressed = false;
+  void _onButtonPressed() {
+    final tmp = nameController.text.trim();
+
+    if (tmp.isEmpty) {
+      // Vibrate the phone
+      Vibration.vibrate(duration: 500);
+
+      // Show a message
+      Fluttertoast.showToast(
+        msg: 'Please input name',
+        gravity: ToastGravity.TOP,
+      );
+
+      // Highlight the TextField
+      // nameFocusNode.requestFocus();
+    } else {
+      name = tmp;
+      pressed = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'test`',
         home: Scaffold(
-            // appBar: AppBar(
-            //   title: const Text('Mishy Panic!', style: TextStyle(fontSize: 30)),
-            //   centerTitle: true,
-            //   backgroundColor: Colors.blue,
-            // ),
+            resizeToAvoidBottomInset: false,
             body: Stack(
-          children: <Widget>[
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Center(
-                    child:
-                        Text('Mishy Panic!', style: TextStyle(fontSize: 60))),
-                Padding(
-                  padding: EdgeInsets.all(15), //apply padding to all four sides
-                  child: Center(
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeSHARE()),
-                            );
-                          },
-                          child: const Center(child: Text('Start Game')))),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Center(
+                        child: Text('Mishy Panic!',
+                            style: TextStyle(fontSize: 60))),
+                    Center(
+                      child: SizedBox(
+                        width: 300,
+                        child: TextField(
+                          controller: nameController,
+                          // focusNode: nameFocusNode,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your name',
+                          ),
+                          onSubmitted: (_) => _onButtonPressed(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.all(15), //apply padding to all four sides
+                      child: Center(
+                          child: ElevatedButton(
+                              onPressed: () {
+                                _onButtonPressed();
+                                if (pressed)
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const HomeSHARE()),
+                                  );
+                              },
+                              child: const Center(child: Text('Start Game')))),
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.all(15), //apply padding to all four sides
+                      child: Center(
+                          child: ElevatedButton(
+                              onPressed: () {
+                                _onButtonPressed();
+                                if (pressed)
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LeaderboardPage()),
+                                  );
+                              },
+                              child:
+                                  const Center(child: Text('LeaderBoards')))),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: EdgeInsets.all(15), //apply padding to all four sides
-                  child: Center(
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LeaderboardPage()),
-                            );
-                          },
-                          child: const Center(child: Text('LeaderBoards')))),
-                ),
+                // Positioned(
+                //     bottom: 0,
+                //     right: 0,
+                //     child: GestureDetector(
+                //       behavior: HitTestBehavior.opaque,
+                //       onTap: () {},
+                //       child: Image.asset(
+                //         'assets/images/tio.png',
+                //         width: max(MediaQuery.of(context).size.width / 3,
+                //             MediaQuery.of(context).size.height / 3),
+                //         height: max(MediaQuery.of(context).size.width / 3,
+                //             MediaQuery.of(context).size.height / 3),
+                //       ),
+                //     )),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Image.asset(
+                    'assets/images/tio.png',
+                    width: max(MediaQuery.of(context).size.width / 3,
+                        MediaQuery.of(context).size.height / 3),
+                    height: max(MediaQuery.of(context).size.width / 3,
+                        MediaQuery.of(context).size.height / 3),
+                  ),
+                )
               ],
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Image.asset(
-                'assets/images/tio.png',
-                width: max(MediaQuery.of(context).size.width / 3,
-                    MediaQuery.of(context).size.height / 3),
-                height: max(MediaQuery.of(context).size.width / 3,
-                    MediaQuery.of(context).size.height / 3),
-              ),
-            )
-          ],
-        )));
+            )));
   }
 }
 
@@ -481,18 +542,19 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   //delete those that are not first 25 in sorted order by score desc, date desc
   //read first 25 in same sorted order
 
-  Future<List<Map<String, dynamic>>> results = Leaderboard.initialQuery();
+  Future<List<Map<String, dynamic>>> results =
+      Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
 
-  late String _name;
-  bool submitted = false;
+  // late String _name;
+  // bool submitted = false;
 
-  void _onSubmitted(String value) {
-    setState(() {
-      _name = value.trim();
-      results = Leaderboard.insertAndQuery(_name, DateTime.now(), total_score);
-      submitted = true;
-    });
-  }
+  // void _onSubmitted(String value) {
+  //   setState(() {
+  //     _name = value.trim();
+  //     results = Leaderboard.insertAndQuery(_name, DateTime.now(), total_score);
+  //     submitted = true;
+  //   });
+  // }
 
   //display those 25 records, if not 25 display those records only
 
@@ -511,31 +573,31 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Visibility(
-              child: Center(
-                child: Container(
-                  width: 300,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: TextField(
-                    textAlignVertical: TextAlignVertical.center,
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Enter Name',
-                    ),
-                    onSubmitted: _onSubmitted,
-                  ),
-                ),
-              ),
-              maintainSize: submitted,
-              maintainAnimation: submitted,
-              maintainState: submitted,
-              visible: !submitted,
-            ),
+            // Visibility(
+            //   child: Center(
+            //     child: Container(
+            //       width: 300,
+            //       height: 50,
+            //       decoration: BoxDecoration(
+            //         border: Border.all(color: Colors.grey),
+            //         borderRadius: BorderRadius.circular(10),
+            //       ),
+            //       child: TextField(
+            //         textAlignVertical: TextAlignVertical.center,
+            //         textAlign: TextAlign.center,
+            //         decoration: InputDecoration(
+            //           border: InputBorder.none,
+            //           hintText: 'Enter Name',
+            //         ),
+            //         onSubmitted: _onSubmitted,
+            //       ),
+            //     ),
+            //   ),
+            //   maintainSize: submitted,
+            //   maintainAnimation: submitted,
+            //   maintainState: submitted,
+            //   visible: !submitted,
+            // ),
             FutureBuilder<List<Map<String, dynamic>>>(
               future: results,
               builder: (BuildContext context, AsyncSnapshot snapshot) {
