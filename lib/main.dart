@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
+int total_score = 0;
+
 class Leaderboard {
   static final _databaseName = 'leaderboard.db';
   static final _databaseVersion = 1;
@@ -45,30 +47,82 @@ class Leaderboard {
 
   static Future<List<Map<String, dynamic>>> insertAndQuery(
       String name, DateTime date, int score) async {
-    await _database!.insert(table, {
-      "name": name,
-      "date": date.toIso8601String().substring(0, 10),
-      "score": score,
-    });
-
-    final List<Map<String, dynamic>> results = await _database!.query(
+    // Check if the name already exists in the database
+    final List<Map<String, dynamic>> existingRecords = await _database!.query(
       table,
-      orderBy: '$score DESC, $date DESC',
+      where: 'name = ?',
+      whereArgs: [name],
     );
 
-    if (results.length > 25) {
-      final idsToDelete = results
-          .sublist(25)
-          .map((result) => result["name"] as String)
-          .toList();
-      await _database!.delete(
+    if (existingRecords.isNotEmpty) {
+      final existingScore = existingRecords.first['score'] as int;
+      final existingDate =
+          DateTime.parse(existingRecords.first['date'] as String);
+
+      // Update the record if the score is higher than the existing score
+      if (score > existingScore) {
+        await _database!.update(
+          table,
+          {
+            'date': date.toIso8601String().substring(0, 10),
+            'score': score,
+          },
+          where: 'name = ?',
+          whereArgs: [name],
+        );
+      }
+      // Update the date if the scores are the same but the date is later
+      else if (score == existingScore && date.isAfter(existingDate)) {
+        await _database!.update(
+          table,
+          {
+            'date': date.toIso8601String().substring(0, 10),
+          },
+          where: 'name = ?',
+          whereArgs: [name],
+        );
+      }
+    } else {
+      // Insert the new record if the name doesn't exist in the database
+      await _database!.insert(table, {
+        "name": name,
+        "date": date.toIso8601String().substring(0, 10),
+        "score": score,
+      });
+
+      // Remove excess records if necessary
+      final List<Map<String, dynamic>> results = await _database!.query(
         table,
-        where: 'name IN (${idsToDelete.map((_) => '?').join(', ')})',
-        whereArgs: idsToDelete,
+        orderBy: 'Score DESC, Date DESC',
       );
+      if (results.length > 25) {
+        final idsToDelete = results
+            .sublist(25)
+            .map((result) => result["name"] as String)
+            .toList();
+        await _database!.delete(
+          table,
+          where: 'name IN (${idsToDelete.map((_) => '?').join(', ')})',
+          whereArgs: idsToDelete,
+        );
+      }
     }
 
-    return results;
+    // Return the updated results
+    final List<Map<String, dynamic>> updatedResults = await _database!.query(
+      table,
+      orderBy: 'Score DESC, Date DESC',
+    );
+    return updatedResults;
+  }
+
+  static Future<List<Map<String, dynamic>>> initialQuery() async {
+    final List<Map<String, dynamic>> updatedResults = await _database!.query(
+      table,
+      orderBy: 'Score DESC, Date DESC',
+      limit: 25,
+    );
+    return updatedResults;
   }
 }
 
@@ -99,11 +153,13 @@ class _HomeSHAREState extends State<HomeSHARE> {
   int active_index = 0;
   int grid_count = 3;
   // int cur_index = 0;
-  int score = 0;
+  // int score = 0;
   double game_timer = 5;
   double active_border = 5.0;
   final double appBarHeight = AppBar().preferredSize.height;
   //final double bottomNavigationBarHeight = kBottomNavigationBarHeight;
+
+  int score = 0;
 
   late final Size size = MediaQuery.of(context).size;
   late final double height = size.height - appBarHeight;
@@ -191,6 +247,8 @@ class _HomeSHAREState extends State<HomeSHARE> {
   void endGame() {
     //stop countdown
     timer.cancel();
+    total_score = score;
+    score = 0;
 
     //navigate to leaderboard
     Navigator.push(
@@ -423,8 +481,17 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   //delete those that are not first 25 in sorted order by score desc, date desc
   //read first 25 in same sorted order
 
-  Future<List<Map<String, dynamic>>> results =
-      Leaderboard.insertAndQuery("tyc", DateTime.now(), 140);
+  Future<List<Map<String, dynamic>>> results = Leaderboard.initialQuery();
+
+  late String _name;
+  bool submitted = false;
+
+  void _onSubmitted(String value) {
+    setState(() {
+      _name = value.trim();
+      results = Leaderboard.insertAndQuery(_name, DateTime.now(), total_score);
+    });
+  }
 
   //display those 25 records, if not 25 display those records only
 
@@ -443,7 +510,25 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Center(child: Text('<insert leaderboard>')),
+            Center(
+              child: Container(
+                width: 300,
+                height: 50,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: TextField(
+                  textAlignVertical: TextAlignVertical.center,
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Enter Name',
+                  ),
+                  onSubmitted: _onSubmitted,
+                ),
+              ),
+            ),
             FutureBuilder<List<Map<String, dynamic>>>(
               future: results,
               builder: (BuildContext context, AsyncSnapshot snapshot) {
