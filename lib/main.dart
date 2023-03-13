@@ -490,6 +490,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     setState(() {
       _name = value.trim();
       results = Leaderboard.insertAndQuery(_name, DateTime.now(), total_score);
+      submitted = true;
     });
   }
 
@@ -510,24 +511,30 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Center(
-              child: Container(
-                width: 300,
-                height: 50,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: TextField(
-                  textAlignVertical: TextAlignVertical.center,
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Enter Name',
+            Visibility(
+              child: Center(
+                child: Container(
+                  width: 300,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  onSubmitted: _onSubmitted,
+                  child: TextField(
+                    textAlignVertical: TextAlignVertical.center,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Enter Name',
+                    ),
+                    onSubmitted: _onSubmitted,
+                  ),
                 ),
               ),
+              maintainSize: submitted,
+              maintainAnimation: submitted,
+              maintainState: submitted,
+              visible: !submitted,
             ),
             FutureBuilder<List<Map<String, dynamic>>>(
               future: results,
