@@ -11,6 +11,9 @@ import 'package:vibration/vibration.dart';
 int total_score = 0;
 String? name = null;
 bool played = false;
+const int min_level = 2;
+const int max_level = 5;
+int level = min_level;
 
 class Leaderboard {
   static final _databaseName = 'leaderboard.db';
@@ -119,6 +122,7 @@ class Leaderboard {
       table,
       orderBy: 'Score DESC, Date DESC',
     );
+    total_score = 0;
     return updatedResults;
   }
 
@@ -157,11 +161,10 @@ class HomeSHARE extends StatefulWidget {
 
 class _HomeSHAREState extends State<HomeSHARE> {
   int active_index = 0;
-  int grid_count = 3;
+  int grid_count = level;
   // int cur_index = 0;
   // int score = 0;
   double game_timer = 5;
-  double active_border = 5.0;
   final double appBarHeight = AppBar().preferredSize.height;
   //final double bottomNavigationBarHeight = kBottomNavigationBarHeight;
 
@@ -220,7 +223,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
         if (_countdownTime <= 0) {
           endGame();
         } else {
-          _countdownTime -= 0.01;
+          _countdownTime = max(_countdownTime - 0.01, 0);
         }
       });
     });
@@ -253,14 +256,41 @@ class _HomeSHAREState extends State<HomeSHARE> {
   void endGame() {
     //stop countdown
     timer.cancel();
-    total_score = score;
+    total_score += score;
     score = 0;
 
+    // Navigator.push(
+    //         context,
+    //         MaterialPageRoute(builder: (context) => const LeaderboardPage()),
+    //       );
+
+    if (level < max_level) {
+      setState(() {
+        level++;
+
+        //reinitialize
+        grid_count = level;
+        borders = List.generate(grid_count * grid_count, (index) => 0);
+        image_status = List.generate(grid_count * grid_count, (index) => 0);
+        remaining = List.generate(grid_count * grid_count, (index) => index);
+        _isGreyedOut = true;
+        isclick = false;
+        _countdownSeconds = 3;
+        _countdownTime = 5.0;
+
+        remaining.shuffle();
+        tp.layout();
+        textHeight = tp.size.height;
+        _startCountdownSeconds = _countdownSeconds + 2;
+        _startCountdown();
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LeaderboardPage()),
+      );
+    }
     //navigate to leaderboard
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LeaderboardPage()),
-    );
   }
 
   @override
@@ -331,7 +361,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                           score++;
                                           image_status[index] = 2;
                                           remaining.removeAt(0);
-                                          if (!remaining.isEmpty == true) {
+                                          if (remaining.isNotEmpty == true) {
                                             image_status[remaining[0]] = 1;
                                           } else {
                                             //get score and publish to leaderboard if within top 25
@@ -339,8 +369,8 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                           }
                                         });
 
-                                        Future.delayed(
-                                                Duration(milliseconds: 150))
+                                        Future.delayed(const Duration(
+                                                milliseconds: 150))
                                             .then((value) {
                                           setState(() {
                                             image_status[index] = 3;
@@ -441,92 +471,112 @@ class _MainPageState extends State<MainPage> {
         debugShowCheckedModeBanner: false,
         title: 'test`',
         home: Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: Stack(
-              children: <Widget>[
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            // resizeToAvoidBottomInset: false,
+            body: SingleChildScrollView(
+                // physics: BouncingScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Stack(
                   children: <Widget>[
-                    const Center(
-                        child: Text('Mishy Panic!',
-                            style: TextStyle(fontSize: 60))),
-                    Center(
-                      child: SizedBox(
-                        width: 300,
-                        child: TextField(
-                          controller: nameController,
-                          // focusNode: nameFocusNode,
-                          decoration: InputDecoration(
-                            hintText: 'Enter your name',
-                          ),
-                          onSubmitted: (_) => _onButtonPressed(),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            const Center(
+                                child: Text('Mishy Panic!',
+                                    style: TextStyle(fontSize: 60))),
+                            Image.asset(
+                              'assets/images/tio.png',
+                              width: max(MediaQuery.of(context).size.width / 3,
+                                  MediaQuery.of(context).size.height / 3),
+                              height: max(MediaQuery.of(context).size.width / 3,
+                                  MediaQuery.of(context).size.height / 3),
+                            ),
+                          ],
                         ),
-                      ),
+                        Center(
+                          child: SizedBox(
+                            width: 300,
+                            child: TextField(
+                              controller: nameController,
+                              // focusNode: nameFocusNode,
+                              decoration: const InputDecoration(
+                                hintText: 'Enter your name',
+                              ),
+                              onSubmitted: (_) => _onButtonPressed(),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(
+                              15), //apply padding to all four sides
+                          child: Center(
+                              child: ElevatedButton(
+                                  onPressed: () {
+                                    _onButtonPressed();
+                                    if (pressed) {
+                                      level = min_level;
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const HomeSHARE()),
+                                      );
+                                    }
+                                  },
+                                  child:
+                                      const Center(child: Text('Start Game')))),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(
+                              15), //apply padding to all four sides
+                          child: Center(
+                              child: ElevatedButton(
+                                  onPressed: () {
+                                    _onButtonPressed();
+                                    if (pressed) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LeaderboardPage()),
+                                      );
+                                    }
+                                  },
+                                  child: const Center(
+                                      child: Text('LeaderBoards')))),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding:
-                          EdgeInsets.all(15), //apply padding to all four sides
-                      child: Center(
-                          child: ElevatedButton(
-                              onPressed: () {
-                                _onButtonPressed();
-                                if (pressed)
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HomeSHARE()),
-                                  );
-                              },
-                              child: const Center(child: Text('Start Game')))),
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.all(15), //apply padding to all four sides
-                      child: Center(
-                          child: ElevatedButton(
-                              onPressed: () {
-                                _onButtonPressed();
-                                if (pressed)
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const LeaderboardPage()),
-                                  );
-                              },
-                              child:
-                                  const Center(child: Text('LeaderBoards')))),
-                    ),
+                    // Positioned(
+                    //     bottom: 0,
+                    //     right: 0,
+                    //     child: GestureDetector(
+                    //       behavior: HitTestBehavior.opaque,
+                    //       onTap: () {},
+                    //       child: Image.asset(
+                    //         'assets/images/tio.png',
+                    //         width: max(MediaQuery.of(context).size.width / 3,
+                    //             MediaQuery.of(context).size.height / 3),
+                    //         height: max(MediaQuery.of(context).size.width / 3,
+                    //             MediaQuery.of(context).size.height / 3),
+                    //       ),
+                    //     )),
+                    // Positioned(
+                    //   bottom: 0,
+                    //   right: 0,
+                    //   child: IgnorePointer(
+                    //     child: Image.asset(
+                    //       'assets/images/tio.png',
+                    //       width: max(MediaQuery.of(context).size.width / 3,
+                    //           MediaQuery.of(context).size.height / 3),
+                    //       height: max(MediaQuery.of(context).size.width / 3,
+                    //           MediaQuery.of(context).size.height / 3),
+                    //     ),
+                    //   ),
+                    // )
                   ],
-                ),
-                // Positioned(
-                //     bottom: 0,
-                //     right: 0,
-                //     child: GestureDetector(
-                //       behavior: HitTestBehavior.opaque,
-                //       onTap: () {},
-                //       child: Image.asset(
-                //         'assets/images/tio.png',
-                //         width: max(MediaQuery.of(context).size.width / 3,
-                //             MediaQuery.of(context).size.height / 3),
-                //         height: max(MediaQuery.of(context).size.width / 3,
-                //             MediaQuery.of(context).size.height / 3),
-                //       ),
-                //     )),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Image.asset(
-                    'assets/images/tio.png',
-                    width: max(MediaQuery.of(context).size.width / 3,
-                        MediaQuery.of(context).size.height / 3),
-                    height: max(MediaQuery.of(context).size.width / 3,
-                        MediaQuery.of(context).size.height / 3),
-                  ),
-                )
-              ],
-            )));
+                ))));
   }
 }
 
@@ -603,7 +653,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 // Check if the query results have been loaded
                 if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 // Extract the query results from the snapshot
@@ -629,7 +679,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
                 // Build the table widget with the rows
                 return Table(
-                  columnWidths: {
+                  columnWidths: const {
                     0: FlexColumnWidth(2.0),
                     1: FlexColumnWidth(1.0),
                     2: FlexColumnWidth(1.0),
@@ -640,7 +690,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       decoration: BoxDecoration(
                         color: Colors.blueGrey[100],
                       ),
-                      children: <Widget>[
+                      children: const <Widget>[
                         TableCell(
                           child: Text('Name'),
                         ),
@@ -658,7 +708,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               },
             ),
             Padding(
-              padding: EdgeInsets.all(15), //apply padding to all four sides
+              padding:
+                  const EdgeInsets.all(15), //apply padding to all four sides
               child: Center(
                   child: ElevatedButton(
                       onPressed: () {
