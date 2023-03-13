@@ -12,3 +12,4 @@ how to do login? required?
 
 others:
 remove appbar and add singular pause button on top right
+resolve timer issue where it is not actually 5 seconds

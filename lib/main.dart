@@ -17,7 +17,7 @@ class HomeSHARE extends StatefulWidget {
 
 class _HomeSHAREState extends State<HomeSHARE> {
   int active_index = 0;
-  int grid_count = 2;
+  int grid_count = 4;
   // int cur_index = 0;
   int score = 0;
   double game_timer = 5;
