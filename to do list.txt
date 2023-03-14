@@ -19,7 +19,6 @@ how to do login? required?
 others:
 
 important!
-clear future delayed events so that sadge mishies wont be brought over to the next level and also wont reference disposed screens
 add autofill name
 
 can do later
