@@ -12,11 +12,11 @@ others:
 remove appbar and add singular pause button on top right of game page
 resolve timer issue where it is not actually 5 seconds
 image loading slow issue
-center name in mainpage text field
-make image for front page title
 
 important!
 clear future delayed events so that sadge mishies wont be brought over to the next level
 add autofill name
+
+can do later
 how to pass information without using global variable?
 unable to back on modal barrier active

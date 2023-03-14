@@ -481,118 +481,78 @@ class _MainPageState extends State<MainPage> {
         title: 'test`',
         home: Scaffold(
             // resizeToAvoidBottomInset: false,
-            body: SingleChildScrollView(
-                // physics: BouncingScrollPhysics(),
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Stack(
-                  children: <Widget>[
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            const Center(
-                                child: Text('Mishy Panic!',
-                                    style: TextStyle(fontSize: 60))),
-                            Image.asset(
-                              'assets/images/tio.png',
-                              width: max(MediaQuery.of(context).size.width / 3,
-                                  MediaQuery.of(context).size.height / 3),
-                              height: max(MediaQuery.of(context).size.width / 3,
-                                  MediaQuery.of(context).size.height / 3),
-                            ),
-                          ],
-                        ),
-                        Center(
-                          child: SizedBox(
-                            width: 300,
-                            child: TextField(
-                              controller: nameController,
-                              // focusNode: nameFocusNode,
-                              decoration: const InputDecoration(
-                                hintText: 'Enter your name',
-                              ),
-                              onSubmitted: (_) => _onButtonPressed(),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(
-                              15), //apply padding to all four sides
-                          child: Center(
-                              child: ElevatedButton(
-                                  onPressed: () {
-                                    _onButtonPressed();
-                                    if (pressed) {
-                                      level = min_level;
-                                      // Navigator.push(
-                                      //   context,
-                                      //   MaterialPageRoute(
-                                      //       builder: (context) =>
-                                      //           const HomeSHARE()),
-                                      // );
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              HomeSHARE(key: UniqueKey()),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child:
-                                      const Center(child: Text('Start Game')))),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(
-                              15), //apply padding to all four sides
-                          child: Center(
-                              child: ElevatedButton(
-                                  onPressed: () {
-                                    _onButtonPressed();
-                                    if (pressed) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const LeaderboardPage()),
-                                      );
-                                    }
-                                  },
-                                  child: const Center(
-                                      child: Text('LeaderBoards')))),
-                        ),
-                      ],
+            body: Center(
+          child: SingleChildScrollView(
+            // physics: const BouncingScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Center(
+                  child: Image.asset(
+                    'assets/images/title.png',
+                    width: max(MediaQuery.of(context).size.width / 3,
+                        MediaQuery.of(context).size.height / 3),
+                    height: max(MediaQuery.of(context).size.width / 3,
+                        MediaQuery.of(context).size.height / 3),
+                  ),
+                ),
+                Center(
+                  child: SizedBox(
+                    width: 300,
+                    child: TextField(
+                      textAlign: TextAlign.center,
+                      controller: nameController,
+                      // focusNode: nameFocusNode,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter your name',
+                      ),
+                      onSubmitted: (_) => _onButtonPressed(),
                     ),
-                    // Positioned(
-                    //     bottom: 0,
-                    //     right: 0,
-                    //     child: GestureDetector(
-                    //       behavior: HitTestBehavior.opaque,
-                    //       onTap: () {},
-                    //       child: Image.asset(
-                    //         'assets/images/tio.png',
-                    //         width: max(MediaQuery.of(context).size.width / 3,
-                    //             MediaQuery.of(context).size.height / 3),
-                    //         height: max(MediaQuery.of(context).size.width / 3,
-                    //             MediaQuery.of(context).size.height / 3),
-                    //       ),
-                    //     )),
-                    // Positioned(
-                    //   bottom: 0,
-                    //   right: 0,
-                    //   child: IgnorePointer(
-                    //     child: Image.asset(
-                    //       'assets/images/tio.png',
-                    //       width: max(MediaQuery.of(context).size.width / 3,
-                    //           MediaQuery.of(context).size.height / 3),
-                    //       height: max(MediaQuery.of(context).size.width / 3,
-                    //           MediaQuery.of(context).size.height / 3),
-                    //     ),
-                    //   ),
-                    // )
-                  ],
-                ))));
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: Center(
+                      child: ElevatedButton(
+                          onPressed: () {
+                            _onButtonPressed();
+                            if (pressed) {
+                              level = min_level;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      HomeSHARE(key: UniqueKey()),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Center(child: Text('Start Game')))),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(
+                      15), //apply padding to all four sides
+                  child: Center(
+                      child: ElevatedButton(
+                          onPressed: () {
+                            _onButtonPressed();
+                            if (pressed) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const LeaderboardPage()),
+                              );
+                            }
+                          },
+                          child: const Center(child: Text('LeaderBoards')))),
+                ),
+              ],
+            ),
+          ),
+        )));
   }
 }
 
