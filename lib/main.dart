@@ -182,6 +182,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
   ];
 
   late Timer timer;
+  late Timer initialTimer;
   double _countdownTime = 5.0;
 
   late TextSpan span = TextSpan(
@@ -236,7 +237,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
       isclick = true;
     });
 
-    Timer.periodic(const Duration(seconds: 1), (timer) {
+    initialTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _countdownSeconds--;
       });
@@ -311,125 +312,133 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "Mishy Panic!",
-        home: Scaffold(
-          appBar: AppBar(
-            title: const Text('Mishy Panic!', style: TextStyle(fontSize: 30)),
-            actions: const [Icon(Icons.pause, size: 50)],
-            centerTitle: true,
-            backgroundColor: Colors.blue,
-          ),
-          body: Stack(
-              //alignment: Alignment.center,
-              children: <Widget>[
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      // RichText(text: span),
-                      Text(
-                        _countdownTime.toStringAsFixed(2),
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.black),
-                      ),
-                      Builder(builder: (BuildContext context) {
-                        return Center(
-                            child: SizedBox(
-                          height: min(
-                              MediaQuery.of(context).size.height -
-                                  AppBar().preferredSize.height -
-                                  textHeight,
-                              MediaQuery.of(context).size.width),
-                          width: min(
-                              MediaQuery.of(context).size.height -
-                                  AppBar().preferredSize.height -
-                                  textHeight,
-                              MediaQuery.of(context).size.width),
-                          child: GridView.count(
-                            crossAxisCount: grid_count,
-                            children:
-                                List.generate(grid_count * grid_count, (index) {
-                              return Material(
-                                child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      if (index == remaining[0]) {
+    return WillPopScope(
+        child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: "Mishy Panic!",
+            home: Scaffold(
+              appBar: AppBar(
+                title:
+                    const Text('Mishy Panic!', style: TextStyle(fontSize: 30)),
+                actions: const [Icon(Icons.pause, size: 50)],
+                centerTitle: true,
+                backgroundColor: Colors.blue,
+              ),
+              body: Stack(
+                  //alignment: Alignment.center,
+                  children: <Widget>[
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          // RichText(text: span),
+                          Text(
+                            _countdownTime.toStringAsFixed(2),
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black),
+                          ),
+                          Builder(builder: (BuildContext context) {
+                            return Center(
+                                child: SizedBox(
+                              height: min(
+                                  MediaQuery.of(context).size.height -
+                                      AppBar().preferredSize.height -
+                                      textHeight,
+                                  MediaQuery.of(context).size.width),
+                              width: min(
+                                  MediaQuery.of(context).size.height -
+                                      AppBar().preferredSize.height -
+                                      textHeight,
+                                  MediaQuery.of(context).size.width),
+                              child: GridView.count(
+                                crossAxisCount: grid_count,
+                                children: List.generate(grid_count * grid_count,
+                                    (index) {
+                                  return Material(
+                                    child: InkWell(
+                                      onTap: () {
                                         setState(() {
-                                          score++;
-                                          image_status[index] = 2;
-                                          remaining.removeAt(0);
-                                          if (remaining.isNotEmpty == true) {
-                                            image_status[remaining[0]] = 1;
-                                          } else {
-                                            //get score and publish to leaderboard if within top 25
-                                            endGame();
+                                          if (index == remaining[0]) {
+                                            setState(() {
+                                              score++;
+                                              image_status[index] = 2;
+                                              remaining.removeAt(0);
+                                              if (remaining.isNotEmpty ==
+                                                  true) {
+                                                image_status[remaining[0]] = 1;
+                                              } else {
+                                                //get score and publish to leaderboard if within top 25
+                                                endGame();
+                                              }
+                                            });
+
+                                            Future.delayed(const Duration(
+                                                    milliseconds: 150))
+                                                .then((value) {
+                                              setState(() {
+                                                image_status[index] = 3;
+                                              });
+                                            });
                                           }
                                         });
-
-                                        Future.delayed(const Duration(
-                                                milliseconds: 150))
-                                            .then((value) {
-                                          setState(() {
-                                            image_status[index] = 3;
-                                          });
-                                        });
-                                      }
-                                    });
-                                  },
-                                  child: ClipRRect(
-                                      child: Container(
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: AssetImage(
-                                            images[image_status[index]]),
-                                        fit: BoxFit.cover,
-                                      ),
+                                      },
+                                      child: ClipRRect(
+                                          child: Container(
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: AssetImage(
+                                                images[image_status[index]]),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      )),
                                     ),
-                                  )),
-                                ),
-                              );
-                            }),
-                          ),
-                        ));
-                      })
-                      // Padding(
-                      //     padding: EdgeInsets.all(15),
-                      //     child: ElevatedButton(
-                      //         onPressed: () {
-                      //           Navigator.pop(context);
-                      //         },
-                      //         child: const Text('Exit Game')))
-                    ],
-                  ),
-                ),
-                if (_isGreyedOut)
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height -
-                        AppBar().preferredSize.height,
-                    child: ModalBarrier(
-                      dismissible: false,
-                      color: Colors.black.withOpacity(0.7),
+                                  );
+                                }),
+                              ),
+                            ));
+                          })
+                          // Padding(
+                          //     padding: EdgeInsets.all(15),
+                          //     child: ElevatedButton(
+                          //         onPressed: () {
+                          //           Navigator.pop(context);
+                          //         },
+                          //         child: const Text('Exit Game')))
+                        ],
+                      ),
                     ),
-                  ),
-                if (_isGreyedOut)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          format(_countdownSeconds),
-                          style: const TextStyle(
-                              fontSize: 64, color: Colors.white),
+                    if (_isGreyedOut)
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height -
+                            AppBar().preferredSize.height,
+                        child: ModalBarrier(
+                          dismissible: false,
+                          color: Colors.black.withOpacity(0.7),
                         ),
-                      ],
-                    ),
-                  ),
-              ]),
-        ));
+                      ),
+                    if (_isGreyedOut)
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              format(_countdownSeconds),
+                              style: const TextStyle(
+                                  fontSize: 64, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ]),
+            )),
+        onWillPop: () async {
+          timer.cancel();
+          initialTimer.cancel();
+          return true;
+        });
   }
 }
 
@@ -516,11 +525,18 @@ class _MainPageState extends State<MainPage> {
                                     _onButtonPressed();
                                     if (pressed) {
                                       level = min_level;
+                                      // Navigator.push(
+                                      //   context,
+                                      //   MaterialPageRoute(
+                                      //       builder: (context) =>
+                                      //           const HomeSHARE()),
+                                      // );
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) =>
-                                                const HomeSHARE()),
+                                          builder: (context) =>
+                                              HomeSHARE(key: UniqueKey()),
+                                        ),
                                       );
                                     }
                                   },
@@ -610,120 +626,126 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'test`',
-        home: Scaffold(
-            // appBar: AppBar(
-            //   title: const Text('test2', style: TextStyle(fontSize: 30)),
-            //   centerTitle: true,
-            //   backgroundColor: Colors.blue,
-            // ),
-            body: Center(
-                child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // Visibility(
-            //   child: Center(
-            //     child: Container(
-            //       width: 300,
-            //       height: 50,
-            //       decoration: BoxDecoration(
-            //         border: Border.all(color: Colors.grey),
-            //         borderRadius: BorderRadius.circular(10),
-            //       ),
-            //       child: TextField(
-            //         textAlignVertical: TextAlignVertical.center,
-            //         textAlign: TextAlign.center,
-            //         decoration: InputDecoration(
-            //           border: InputBorder.none,
-            //           hintText: 'Enter Name',
-            //         ),
-            //         onSubmitted: _onSubmitted,
-            //       ),
-            //     ),
-            //   ),
-            //   maintainSize: submitted,
-            //   maintainAnimation: submitted,
-            //   maintainState: submitted,
-            //   visible: !submitted,
-            // ),
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: results,
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                // Check if the query results have been loaded
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return true;
+      },
+      child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'test`',
+          home: Scaffold(
+              // appBar: AppBar(
+              //   title: const Text('test2', style: TextStyle(fontSize: 30)),
+              //   centerTitle: true,
+              //   backgroundColor: Colors.blue,
+              // ),
+              body: Center(
+                  child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // Visibility(
+              //   child: Center(
+              //     child: Container(
+              //       width: 300,
+              //       height: 50,
+              //       decoration: BoxDecoration(
+              //         border: Border.all(color: Colors.grey),
+              //         borderRadius: BorderRadius.circular(10),
+              //       ),
+              //       child: TextField(
+              //         textAlignVertical: TextAlignVertical.center,
+              //         textAlign: TextAlign.center,
+              //         decoration: InputDecoration(
+              //           border: InputBorder.none,
+              //           hintText: 'Enter Name',
+              //         ),
+              //         onSubmitted: _onSubmitted,
+              //       ),
+              //     ),
+              //   ),
+              //   maintainSize: submitted,
+              //   maintainAnimation: submitted,
+              //   maintainState: submitted,
+              //   visible: !submitted,
+              // ),
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: results,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  // Check if the query results have been loaded
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                // Extract the query results from the snapshot
-                final results = snapshot.data;
+                  // Extract the query results from the snapshot
+                  final results = snapshot.data;
 
-                // Build the table rows from the query results
-                final tableRows = List<TableRow>.generate(
-                  results.length,
-                  (int index) => TableRow(
-                    children: <Widget>[
-                      TableCell(
-                        child: Text(results[index]['name']),
-                      ),
-                      TableCell(
-                        child: Text(results[index]['date'].toString()),
-                      ),
-                      TableCell(
-                        child: Text(results[index]['score'].toString()),
-                      ),
-                    ],
-                  ),
-                );
-
-                // Build the table widget with the rows
-                return Table(
-                  columnWidths: const {
-                    0: FlexColumnWidth(2.0),
-                    1: FlexColumnWidth(1.0),
-                    2: FlexColumnWidth(1.0),
-                  },
-                  border: TableBorder.all(),
-                  children: [
-                    TableRow(
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[100],
-                      ),
-                      children: const <Widget>[
+                  // Build the table rows from the query results
+                  final tableRows = List<TableRow>.generate(
+                    results.length,
+                    (int index) => TableRow(
+                      children: <Widget>[
                         TableCell(
-                          child: Text('Name'),
+                          child: Text(results[index]['name']),
                         ),
                         TableCell(
-                          child: Text('Date'),
+                          child: Text(results[index]['date'].toString()),
                         ),
                         TableCell(
-                          child: Text('Score'),
+                          child: Text(results[index]['score'].toString()),
                         ),
                       ],
                     ),
-                    ...tableRows,
-                  ],
-                );
-              },
-            ),
-            Padding(
-              padding:
-                  const EdgeInsets.all(15), //apply padding to all four sides
-              child: Center(
-                  child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MainPage()),
-                        );
-                      },
-                      child:
-                          const Center(child: Text('Go back to Main Page')))),
-            ),
-          ],
-        ))));
+                  );
+
+                  // Build the table widget with the rows
+                  return Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(2.0),
+                      1: FlexColumnWidth(1.0),
+                      2: FlexColumnWidth(1.0),
+                    },
+                    border: TableBorder.all(),
+                    children: [
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey[100],
+                        ),
+                        children: const <Widget>[
+                          TableCell(
+                            child: Text('Name'),
+                          ),
+                          TableCell(
+                            child: Text('Date'),
+                          ),
+                          TableCell(
+                            child: Text('Score'),
+                          ),
+                        ],
+                      ),
+                      ...tableRows,
+                    ],
+                  );
+                },
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.all(15), //apply padding to all four sides
+                child: Center(
+                    child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const MainPage()),
+                          );
+                        },
+                        child:
+                            const Center(child: Text('Go back to Main Page')))),
+              ),
+            ],
+          )))),
+    );
   }
 }
 
