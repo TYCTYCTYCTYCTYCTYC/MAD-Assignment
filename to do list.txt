@@ -4,23 +4,21 @@ set bg colour
 
 main page:
 add rules section
+render overflow issue by column and something else
 
 game page:
 remove appbar and add singular pause button on top right of game page
-resolve timer issue where it is not actually 5 seconds
-image loading slow issue
 
 scoreboard page:
-show current score above leaderboard/ highlight if it made into leaderboard
+highlight if current score made into leaderboard
 
 log in page:
 how to do login? required?
 
-others:
+can do later (not urgent)
+how to pass information without using global variable? => how to add each page top different files
+unable to back on modal barrier active 
+ontapdown doesnt change to bop at the last remaining mishy of the level
 
-important!
-add autofill name
-
-can do later
-how to pass information without using global variable?
-unable to back on modal barrier active
+unresolved issues:
+resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s

@@ -13,7 +13,7 @@ int total_score = 0;
 String? name = null;
 bool played = false;
 const int min_level = 2;
-const int max_level = 5;
+const int max_level = 3;
 int level = min_level;
 bool insertScore = false;
 
@@ -168,11 +168,18 @@ class _HomeSHAREState extends State<HomeSHARE> {
   late final double height = size.height - appBarHeight;
   late final double width = size.width;
 
-  List<String> images = [
-    "assets/images/no_mishy.png",
-    "assets/images/mishy_pop.png",
-    "assets/images/mishy_bop.png",
-    "assets/images/mishy_sadge.png"
+  // List<String> images = [
+  //   "assets/images/no_mishy.png",
+  //   "assets/images/mishy_pop.png",
+  //   "assets/images/mishy_bop.png",
+  //   "assets/images/mishy_sadge.png"
+  // ];
+
+  List<ImageProvider> images = [
+    AssetImage('assets/images/no_mishy.png'),
+    AssetImage('assets/images/mishy_pop.png'),
+    AssetImage('assets/images/mishy_bop.png'),
+    AssetImage('assets/images/mishy_sadge.png')
   ];
 
   late Timer timer;
@@ -180,7 +187,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
   double _countdownTime = 5.0;
 
   late TextSpan span = TextSpan(
-      text: 'time: $_countdownTime',
+      text: 'remaining time\n${_countdownTime.toStringAsFixed(1)}',
       style: TextStyle(fontSize: 16, color: Colors.black));
   late TextPainter tp = TextPainter(
       text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
@@ -197,28 +204,23 @@ class _HomeSHAREState extends State<HomeSHARE> {
   int _countdownSeconds = 3;
   late int _startCountdownSeconds;
 
-// final formatter = DurationFormatter(DurationFormatterBuilder()
-//       ..alwaysUseSingularUnits = true
-//       ..zeroPadDays = false
-//       ..fractionalDigits = 2);
-
-  String format(int _countdownSeconds) {
-    if (this._countdownSeconds == _startCountdownSeconds) {
+  String format(int countdownSeconds) {
+    if (_countdownSeconds == _startCountdownSeconds) {
       return "Ready ...";
-    } else if (this._countdownSeconds == 1) {
+    } else if (_countdownSeconds == 1) {
       return "Start!";
     } else {
-      return (_countdownSeconds - 1).toString();
+      return (countdownSeconds - 1).toString();
     }
   }
 
   void _startTimer() {
-    timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
         if (_countdownTime <= 0) {
           endGame();
         } else {
-          _countdownTime = max(_countdownTime - 0.01, 0);
+          _countdownTime = max(_countdownTime - 0.1, 0);
         }
       });
     });
@@ -240,7 +242,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
         timer.cancel();
         setState(() {
           _isGreyedOut = false;
-          // _countdownSeconds = 10;
           image_status[remaining[0]] = 1;
           _startTimer();
         });
@@ -281,8 +282,13 @@ class _HomeSHAREState extends State<HomeSHARE> {
         MaterialPageRoute(builder: (context) => const LeaderboardPage()),
       );
     }
-    //navigate to leaderboard
   }
+
+  // void loadImages() async {
+  //   for (int i = 0; i < images.length; i++) {
+  //     await precacheImage(images[i], context);
+  //   }
+  // }
 
   @override
   void initState() {
@@ -292,6 +298,8 @@ class _HomeSHAREState extends State<HomeSHARE> {
     textHeight = tp.size.height;
     _startCountdownSeconds = _countdownSeconds + 2;
     _startCountdown();
+
+    // loadImages();
   }
 
   // @override
@@ -323,7 +331,8 @@ class _HomeSHAREState extends State<HomeSHARE> {
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
                           Text(
-                            _countdownTime.toStringAsFixed(2),
+                            "remaining time\n${_countdownTime.toStringAsFixed(1)}s",
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
                                 fontSize: 16, color: Colors.black),
                           ),
@@ -362,8 +371,8 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                       },
                                       onTap: () {
                                         setState(() {
-                                          Future.delayed(
-                                                  Duration(milliseconds: 150))
+                                          Future.delayed(const Duration(
+                                                  milliseconds: 150))
                                               .then((value) {
                                             if (image_status[index] == 2) {
                                               image_status[index] = 3;
@@ -375,8 +384,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                           child: Container(
                                         decoration: BoxDecoration(
                                           image: DecorationImage(
-                                            image: AssetImage(
-                                                images[image_status[index]]),
+                                            image: images[image_status[index]],
                                             fit: BoxFit.cover,
                                           ),
                                         ),
@@ -610,66 +618,99 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              FutureBuilder<List<Map<String, dynamic>>>(
-                future: results,
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  // Check if the query results have been loaded
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  // Extract the query results from the snapshot
-                  final results = snapshot.data;
-
-                  if (results.length == 0) return const Text("No leaderboard");
-
-                  // Build the table rows from the query results
-                  final tableRows = List<TableRow>.generate(
-                    results.length,
-                    (int index) => TableRow(
-                      children: <Widget>[
-                        TableCell(
-                          child: Text(results[index]['name']),
-                        ),
-                        TableCell(
-                          child: Text(results[index]['date'].toString()),
-                        ),
-                        TableCell(
-                          child: Text(results[index]['score'].toString()),
-                        ),
-                      ],
+              if (insertScore)
+                Center(
+                    child: Column(
+                  children: <Widget>[
+                    const Text(
+                      "SCORE",
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                          decoration: TextDecoration.underline),
                     ),
-                  );
+                    Text(
+                      total_score.toString(),
+                      style: const TextStyle(fontSize: 50, color: Colors.blue),
+                    ),
+                  ],
+                )),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: results,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    // Check if the query results have been loaded
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  // Build the table widget with the rows
-                  return Table(
-                    columnWidths: const {
-                      0: FlexColumnWidth(2.0),
-                      1: FlexColumnWidth(1.0),
-                      2: FlexColumnWidth(1.0),
-                    },
-                    border: TableBorder.all(),
-                    children: [
-                      TableRow(
-                        decoration: BoxDecoration(
-                          color: Colors.blueGrey[100],
-                        ),
-                        children: const <Widget>[
+                    // Extract the query results from the snapshot
+                    final results = snapshot.data;
+
+                    if (results.length == 0) {
+                      return const Center(
+                        child: Text("No leaderboard"),
+                      );
+                    }
+
+                    int rank = 1;
+
+                    // Build the table rows from the query results
+                    final tableRows = List<TableRow>.generate(
+                      results.length,
+                      (int index) => TableRow(
+                        children: <Widget>[
                           TableCell(
-                            child: Text('Name'),
+                            child: Text((rank++).toString()),
                           ),
                           TableCell(
-                            child: Text('Date'),
+                            child: Text(results[index]['name']),
                           ),
                           TableCell(
-                            child: Text('Score'),
+                            child: Text(results[index]['date'].toString()),
+                          ),
+                          TableCell(
+                            child: Text(results[index]['score'].toString()),
                           ),
                         ],
                       ),
-                      ...tableRows,
-                    ],
-                  );
-                },
+                    );
+
+                    // Build the table widget with the rows
+                    return Table(
+                      columnWidths: const {
+                        0: FlexColumnWidth(1.0),
+                        1: FlexColumnWidth(1.0),
+                        2: FlexColumnWidth(1.0),
+                        3: FlexColumnWidth(1.0),
+                      },
+                      border: TableBorder.all(),
+                      children: [
+                        const TableRow(
+                          decoration: BoxDecoration(
+                            color: Color.fromARGB(255, 127, 217, 255),
+                          ),
+                          children: <Widget>[
+                            TableCell(
+                              child: Text('Rank'),
+                            ),
+                            TableCell(
+                              child: Text('Name'),
+                            ),
+                            TableCell(
+                              child: Text('Date'),
+                            ),
+                            TableCell(
+                              child: Text('Score'),
+                            ),
+                          ],
+                        ),
+                        ...tableRows,
+                      ],
+                    );
+                  },
+                ),
               ),
               Padding(
                 padding:
