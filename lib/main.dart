@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:vibration/vibration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 int total_score = 0;
 String? name = null;
@@ -14,6 +15,7 @@ bool played = false;
 const int min_level = 2;
 const int max_level = 5;
 int level = min_level;
+bool insertScore = false;
 
 class Leaderboard {
   static final _databaseName = 'leaderboard.db';
@@ -137,14 +139,6 @@ class Leaderboard {
 }
 
 void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-// // Open the database and store the reference.
-//   final database = openDatabase(
-//     // Set the path to the database. Note: Using the `join` function from the
-//     // `path` package is best practice to ensure the path is correctly
-//     // constructed for each platform.
-//     p.join(await getDatabasesPath(), 'Leaderboard.db'),
-//   );
   WidgetsFlutterBinding.ensureInitialized();
   final db = await Leaderboard.instance.database;
 
@@ -260,11 +254,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
     total_score += score;
     score = 0;
 
-    // Navigator.push(
-    //         context,
-    //         MaterialPageRoute(builder: (context) => const LeaderboardPage()),
-    //       );
-
     if (level < max_level) {
       setState(() {
         level++;
@@ -286,6 +275,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
         _startCountdown();
       });
     } else {
+      insertScore = true;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LeaderboardPage()),
@@ -332,7 +322,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          // RichText(text: span),
                           Text(
                             _countdownTime.toStringAsFixed(2),
                             style: const TextStyle(
@@ -356,31 +345,30 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                 children: List.generate(grid_count * grid_count,
                                     (index) {
                                   return Material(
-                                    child: InkWell(
-                                      onTap: () {
+                                    child: GestureDetector(
+                                      onTapDown: (TapDownDetails details) {
                                         setState(() {
                                           if (index == remaining[0]) {
-                                            setState(() {
-                                              score++;
-                                              image_status[index] = 2;
-                                              remaining.removeAt(0);
-                                              if (remaining.isNotEmpty ==
-                                                  true) {
-                                                image_status[remaining[0]] = 1;
-                                              } else {
-                                                //get score and publish to leaderboard if within top 25
-                                                endGame();
-                                              }
-                                            });
-
-                                            Future.delayed(const Duration(
-                                                    milliseconds: 150))
-                                                .then((value) {
-                                              setState(() {
-                                                image_status[index] = 3;
-                                              });
-                                            });
+                                            score++;
+                                            image_status[index] = 2;
+                                            remaining.removeAt(0);
+                                            if (remaining.isNotEmpty == true) {
+                                              image_status[remaining[0]] = 1;
+                                            } else {
+                                              endGame();
+                                            }
                                           }
+                                        });
+                                      },
+                                      onTap: () {
+                                        setState(() {
+                                          Future.delayed(
+                                                  Duration(milliseconds: 150))
+                                              .then((value) {
+                                            if (image_status[index] == 2) {
+                                              image_status[index] = 3;
+                                            }
+                                          });
                                         });
                                       },
                                       child: ClipRRect(
@@ -451,10 +439,12 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final nameController = TextEditingController();
+
   // final nameFocusNode = FocusNode();
   bool pressed = false;
   void _onButtonPressed() {
     final tmp = nameController.text.trim();
+    _saveText(tmp);
 
     if (tmp.isEmpty) {
       // Vibrate the phone
@@ -472,6 +462,25 @@ class _MainPageState extends State<MainPage> {
       name = tmp;
       pressed = true;
     }
+  }
+
+  void _loadSavedText() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String savedText = prefs.getString('last_name') ?? '';
+    setState(() {
+      nameController.text = savedText;
+    });
+  }
+
+  void _saveText(String text) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_name', text);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedText();
   }
 
   @override
@@ -499,17 +508,24 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
                 Center(
-                  child: SizedBox(
-                    width: 300,
-                    child: TextField(
-                      textAlign: TextAlign.center,
-                      controller: nameController,
-                      // focusNode: nameFocusNode,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter your name',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("Player: "),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width /
+                            3, //adjust width
+                        child: TextField(
+                          textAlign: TextAlign.center,
+                          controller: nameController,
+                          // focusNode: nameFocusNode,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter your name',
+                          ),
+                          onSubmitted: (_) => _onButtonPressed(),
+                        ),
                       ),
-                      onSubmitted: (_) => _onButtonPressed(),
-                    ),
+                    ],
                   ),
                 ),
                 Padding(
@@ -537,15 +553,13 @@ class _MainPageState extends State<MainPage> {
                   child: Center(
                       child: ElevatedButton(
                           onPressed: () {
-                            _onButtonPressed();
-                            if (pressed) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const LeaderboardPage()),
-                              );
-                            }
+                            insertScore = false;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const LeaderboardPage()),
+                            );
                           },
                           child: const Center(child: Text('LeaderBoards')))),
                 ),
@@ -564,25 +578,17 @@ class LeaderboardPage extends StatefulWidget {
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
-  //insert
-  //delete those that are not first 25 in sorted order by score desc, date desc
-  //read first 25 in same sorted order
+  late Future<List<Map<String, dynamic>>> results;
 
-  Future<List<Map<String, dynamic>>> results =
-      Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
-
-  // late String _name;
-  // bool submitted = false;
-
-  // void _onSubmitted(String value) {
-  //   setState(() {
-  //     _name = value.trim();
-  //     results = Leaderboard.insertAndQuery(_name, DateTime.now(), total_score);
-  //     submitted = true;
-  //   });
-  // }
-
-  //display those 25 records, if not 25 display those records only
+  @override
+  void initState() {
+    super.initState();
+    if (insertScore == true) {
+      results = Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
+    } else {
+      results = Leaderboard.initialQuery();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -604,31 +610,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Visibility(
-              //   child: Center(
-              //     child: Container(
-              //       width: 300,
-              //       height: 50,
-              //       decoration: BoxDecoration(
-              //         border: Border.all(color: Colors.grey),
-              //         borderRadius: BorderRadius.circular(10),
-              //       ),
-              //       child: TextField(
-              //         textAlignVertical: TextAlignVertical.center,
-              //         textAlign: TextAlign.center,
-              //         decoration: InputDecoration(
-              //           border: InputBorder.none,
-              //           hintText: 'Enter Name',
-              //         ),
-              //         onSubmitted: _onSubmitted,
-              //       ),
-              //     ),
-              //   ),
-              //   maintainSize: submitted,
-              //   maintainAnimation: submitted,
-              //   maintainState: submitted,
-              //   visible: !submitted,
-              // ),
               FutureBuilder<List<Map<String, dynamic>>>(
                 future: results,
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -639,6 +620,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
                   // Extract the query results from the snapshot
                   final results = snapshot.data;
+
+                  if (results.length == 0) return const Text("No leaderboard");
 
                   // Build the table rows from the query results
                   final tableRows = List<TableRow>.generate(

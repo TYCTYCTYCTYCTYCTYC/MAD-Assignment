@@ -1,20 +1,25 @@
-main page:
+all pages:
 bgm?
+set bg colour
+
+main page:
+add rules section
+
+game page:
+remove appbar and add singular pause button on top right of game page
+resolve timer issue where it is not actually 5 seconds
+image loading slow issue
 
 scoreboard page:
-fire base
-if go to leaderboard from main page, no need enter record
+show current score above leaderboard/ highlight if it made into leaderboard
 
 log in page:
 how to do login? required?
 
 others:
-remove appbar and add singular pause button on top right of game page
-resolve timer issue where it is not actually 5 seconds
-image loading slow issue
 
 important!
-clear future delayed events so that sadge mishies wont be brought over to the next level
+clear future delayed events so that sadge mishies wont be brought over to the next level and also wont reference disposed screens
 add autofill name
 
 can do later
