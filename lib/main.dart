@@ -12,8 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 int total_score = 0;
 String? name = null;
 bool played = false;
-const int min_level = 2;
-const int max_level = 3;
+const int min_level = 1;
+const int max_level = 5;
 int level = min_level;
 bool insertScore = false;
 
@@ -155,7 +155,7 @@ class HomeSHARE extends StatefulWidget {
 
 class _HomeSHAREState extends State<HomeSHARE> {
   int active_index = 0;
-  int grid_count = level;
+  int grid_count = level + 1;
   // int cur_index = 0;
   // int score = 0;
   double game_timer = 5;
@@ -255,12 +255,12 @@ class _HomeSHAREState extends State<HomeSHARE> {
     total_score += score;
     score = 0;
 
-    if (level < max_level) {
+    if (level + 1 <= max_level) {
       setState(() {
         level++;
 
         //reinitialize
-        grid_count = level;
+        grid_count = level + 1;
         borders = List.generate(grid_count * grid_count, (index) => 0);
         image_status = List.generate(grid_count * grid_count, (index) => 0);
         remaining = List.generate(grid_count * grid_count, (index) => index);
@@ -317,7 +317,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
             home: Scaffold(
               appBar: AppBar(
                 title:
-                    const Text('Mishy Panic!', style: TextStyle(fontSize: 30)),
+                    Text('LEVEL $level', style: const TextStyle(fontSize: 30)),
                 actions: const [Icon(Icons.pause, size: 50)],
                 centerTitle: true,
                 backgroundColor: Colors.blue,

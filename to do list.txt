@@ -15,6 +15,9 @@ highlight if current score made into leaderboard
 log in page:
 how to do login? required?
 
+urgent
+sort by date and TIME
+
 can do later (not urgent)
 how to pass information without using global variable? => how to add each page top different files
 unable to back on modal barrier active 
@@ -22,3 +25,8 @@ ontapdown doesnt change to bop at the last remaining mishy of the level
 
 unresolved issues:
 resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s
+
+unfollowed requirements:
+2.	That you can end the game at the end of any of the levels. (medium)
+3.	That the player can enter his/name if the score achieved is good enough to enter the Top 25 score table. (easy)
+question: do we enter before or after game ends? 
