@@ -588,6 +588,7 @@ class LeaderboardPage extends StatefulWidget {
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
   bool name_entered = false;
+  bool enter = true;
   final nameController = TextEditingController();
   late DateTime now;
   late List<int> temp_score_list;
@@ -643,6 +644,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     return WillPopScope(
       onWillPop: () async {
         total_score = 0;
+        enter = false;
         Navigator.of(context).popUntil((route) => route.isFirst);
         return true;
       },
@@ -828,49 +830,50 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       }
                     },
                   ),
-                  FutureBuilder<Map<String, int>>(
-                    future: leaderboardData,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData &&
-                          (snapshot.data!["minScore"]! <= total_score ||
-                              snapshot.data!["number"]! < top) &&
-                          !name_entered) {
-                        return Center(
-                            child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(15),
-                                child: Text(
-                                  style: const TextStyle(
-                                      fontSize: 32, color: Colors.white),
+                  if (enter)
+                    FutureBuilder<Map<String, int>>(
+                      future: leaderboardData,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData &&
+                            (snapshot.data!["minScore"]! <= total_score ||
+                                snapshot.data!["number"]! < top) &&
+                            !name_entered) {
+                          return Center(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(15),
+                                  child: Text(
+                                    style: const TextStyle(
+                                        fontSize: 32, color: Colors.white),
+                                    textAlign: TextAlign.center,
+                                    "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width /
+                                    2, //adjust width
+                                child: TextField(
                                   textAlign: TextAlign.center,
-                                  "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
+                                  controller: nameController,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Enter your name',
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                  ),
+                                  onSubmitted: (_) => _onButtonPressed(),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width /
-                                  2, //adjust width
-                              child: TextField(
-                                textAlign: TextAlign.center,
-                                controller: nameController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Enter your name',
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                                onSubmitted: (_) => _onButtonPressed(),
-                              ),
-                            ),
-                          ],
-                        ));
-                      } else {
-                        return const SizedBox.shrink();
-                      }
-                    },
-                  ),
+                            ],
+                          ));
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
                 ],
               ))),
     );
