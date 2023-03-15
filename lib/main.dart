@@ -317,7 +317,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
               appBar: AppBar(
                 title:
                     Text('LEVEL $level', style: const TextStyle(fontSize: 30)),
-                actions: const [Icon(Icons.pause, size: 50)],
                 centerTitle: true,
                 backgroundColor: Colors.blue,
               ),
@@ -643,10 +642,10 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   late Future<List<Map<String, dynamic>>> results;
   late List<int> temp_score_list;
-  bool askName = false;
   late Future<Map<String, int>> leaderboardData;
   final nameController = TextEditingController();
   bool name_entered = false;
+  late DateTime now;
 
   void _saveText(String text) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -675,9 +674,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       name = tmp;
 
       setState(() {
-        results =
-            Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
-        ;
+        results = Leaderboard.insertAndQuery(name!, now, total_score);
       });
     }
   }
@@ -690,6 +687,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
   @override
   void initState() {
+    now = DateTime.now();
+    name = null;
     super.initState();
     temp_score_list = List.from(score_list);
     score_list.clear();
@@ -726,7 +725,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         child: Column(
                       children: <Widget>[
                         const Text(
-                          "SCORE",
+                          " TOTAL SCORE",
                           style: TextStyle(
                               fontSize: 20,
                               color: Colors.black,
@@ -763,25 +762,57 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
                         // Build the table rows from the query results
                         final tableRows = List<TableRow>.generate(
-                          min(results.length, top),
-                          (int index) => TableRow(
-                            children: <Widget>[
-                              TableCell(
-                                child: Text((rank++).toString()),
-                              ),
-                              TableCell(
-                                child: Text(results[index]['name']),
-                              ),
-                              TableCell(
-                                child: Text(results[index]['score'].toString()),
-                              ),
-                              TableCell(
-                                child: Text(formattedDate(
-                                    results[index]['date'].toString())),
-                              ),
-                            ],
-                          ),
-                        );
+                            min(results.length, top),
+                            (int index) => TableRow(
+                                  children: [
+                                    TableCell(
+                                      child: Container(
+                                        color: results[index]['name'] == name &&
+                                                results[index]['date']
+                                                        .toString() ==
+                                                    now.toIso8601String()
+                                            ? Color.fromARGB(255, 127, 217, 255)
+                                            : Colors.white,
+                                        child: Text((rank++).toString()),
+                                      ),
+                                    ),
+                                    TableCell(
+                                      child: Container(
+                                        color: results[index]['name'] == name &&
+                                                results[index]['date']
+                                                        .toString() ==
+                                                    now.toIso8601String()
+                                            ? Color.fromARGB(255, 127, 217, 255)
+                                            : Colors.white,
+                                        child: Text(results[index]['name']),
+                                      ),
+                                    ),
+                                    TableCell(
+                                      child: Container(
+                                        color: results[index]['name'] == name &&
+                                                results[index]['date']
+                                                        .toString() ==
+                                                    now.toIso8601String()
+                                            ? Color.fromARGB(255, 127, 217, 255)
+                                            : Colors.white,
+                                        child: Text(
+                                            results[index]['score'].toString()),
+                                      ),
+                                    ),
+                                    TableCell(
+                                      child: Container(
+                                        color: results[index]['name'] == name &&
+                                                results[index]['date']
+                                                        .toString() ==
+                                                    now.toIso8601String()
+                                            ? Color.fromARGB(255, 127, 217, 255)
+                                            : Colors.white,
+                                        child: Text(formattedDate(
+                                            results[index]['date'].toString())),
+                                      ),
+                                    ),
+                                  ],
+                                ));
 
                         // Build the table widget with the rows
                         return Column(children: <Widget>[
@@ -804,7 +835,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             children: [
                               const TableRow(
                                 decoration: BoxDecoration(
-                                  color: Color.fromARGB(255, 127, 217, 255),
+                                  color: Colors.blue,
                                 ),
                                 children: <Widget>[
                                   TableCell(
