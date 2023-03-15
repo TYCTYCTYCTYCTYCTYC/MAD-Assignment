@@ -2,9 +2,6 @@ all pages:
 bgm? mute button
 set bg colour
 
-main page:
-render overflow issue by column and something else
-
 scoreboard page:
 add msg saying didnt make it into LeaderBoards if didnt make it
 
@@ -18,3 +15,4 @@ ontapdown doesnt change to bop at the last remaining mishy of the level
 
 unresolved issues:
 resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s
+render overflow issue by column and something else => no keyboard on main page causes error to not occur anymore

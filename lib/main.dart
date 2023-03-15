@@ -12,15 +12,22 @@ import 'package:vibration/vibration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart' as intl;
 
-int total_score = 0;
-String? name = null;
-bool played = false;
-const int min_level = 1;
-const int max_level = 3;
-int level = min_level;
+//testing purposes, test = true uses smaller testing values of min_level, max_level, top and _countdownTime
+//else use actual values
+const bool test = true;
+
 bool insertScore = false;
+bool played = false;
+int total_score = 0;
+int level = min_level;
+const int min_level =
+    (!test) ? 1 : 1; //technically toggleable but recommended to be 1
+const int max_level = (!test) ? 5 : 3; //toggleable parameter
+const int top = (!test) ? 25 : 3; //toggleable parameter
 List<int> score_list = [];
-const int top = 3;
+final double _startingCountdownTime =
+    (!test) ? 5.0 : 3.0; //toggleable parameter
+String? name = null;
 
 class Leaderboard {
   static const _databaseName = 'leaderboard.db';
@@ -119,14 +126,14 @@ void main() async {
       const MaterialApp(debugShowCheckedModeBanner: false, home: MainPage()));
 }
 
-class HomeSHARE extends StatefulWidget {
-  const HomeSHARE({super.key});
+class Game extends StatefulWidget {
+  const Game({super.key});
 
   @override
-  State<HomeSHARE> createState() => _HomeSHAREState();
+  State<Game> createState() => _GameState();
 }
 
-class _HomeSHAREState extends State<HomeSHARE> {
+class _GameState extends State<Game> {
   //page state data
   bool _isGreyedOut = true, _startTimerCountdown = false;
 
@@ -137,7 +144,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
   int score = 0;
   late int _startCountdownSeconds;
 
-  double _countdownTime = 3.0; //toggleable parameter
+  double _countdownTime = _startingCountdownTime;
 
   late Timer timer;
   late Timer initialTimer;
@@ -230,7 +237,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
         remaining = List.generate(grid_count * grid_count, (index) => index);
         _isGreyedOut = true;
         _countdownSeconds = 3;
-        _countdownTime = 5.0;
+        _countdownTime = _startingCountdownTime;
 
         remaining.shuffle();
         tp.layout();
@@ -268,8 +275,8 @@ class _HomeSHAREState extends State<HomeSHARE> {
             title: "Mishy Panic!",
             home: Scaffold(
               appBar: AppBar(
-                title:
-                    Text('LEVEL $level', style: const TextStyle(fontSize: 30)),
+                title: Text('LEVEL ${level - min_level + 1}',
+                    style: const TextStyle(fontSize: 30)),
                 centerTitle: true,
                 backgroundColor: Colors.blue,
               ),
@@ -543,8 +550,7 @@ class _MainPageState extends State<MainPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    HomeSHARE(key: UniqueKey()),
+                                builder: (context) => Game(key: UniqueKey()),
                               ),
                             );
                           },
