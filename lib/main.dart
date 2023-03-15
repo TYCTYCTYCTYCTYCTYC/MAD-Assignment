@@ -18,6 +18,7 @@ const int max_level = 3;
 int level = min_level;
 bool insertScore = false;
 List<int> score_list = [];
+const int top = 3;
 
 class Leaderboard {
   static final _databaseName = 'leaderboard.db';
@@ -51,92 +52,67 @@ class Leaderboard {
     //come back to date later
     await db.execute('''
           CREATE TABLE Leaderboard (
-          name TEXT PRIMARY KEY,
-          date DATE NOT NULL, 
-          score INTEGER NOT NULL
-        )
+          name TEXT NOT NULL,
+          date DATETIME NOT NULL, 
+          score INTEGER NOT NULL,
+          PRIMARY KEY (name, date)
+        );
           ''');
   }
 
   static Future<List<Map<String, dynamic>>> insertAndQuery(
       String name, DateTime date, int score) async {
-    // Check if the name already exists in the database
-    final List<Map<String, dynamic>> existingRecords = await _database!.query(
-      table,
-      where: 'name = ?',
-      whereArgs: [name],
-    );
+    // Insert the new record
+    await _database!.insert(table, {
+      "name": name,
+      "date": date.toIso8601String(),
+      "score": score,
+    });
 
-    if (existingRecords.isNotEmpty) {
-      final existingScore = existingRecords.first['score'] as int;
-      final existingDate =
-          DateTime.parse(existingRecords.first['date'] as String);
-
-      // Update the record if the score is higher than the existing score
-      if (score > existingScore) {
-        await _database!.update(
-          table,
-          {
-            'date': intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(date),
-            'score': score,
-          },
-          where: 'name = ?',
-          whereArgs: [name],
-        );
-      }
-      // Update the date if the scores are the same but the date is later
-      else if (score == existingScore && date.isAfter(existingDate)) {
-        await _database!.update(
-          table,
-          {
-            'date': intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(date),
-          },
-          where: 'name = ?',
-          whereArgs: [name],
-        );
-      }
-    } else {
-      // Insert the new record if the name doesn't exist in the database
-      await _database!.insert(table, {
-        "name": name,
-        "date": intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(date),
-        "score": score,
-      });
-
-      // Remove excess records if necessary
-      final List<Map<String, dynamic>> results = await _database!.query(
-        table,
-        orderBy: 'Score DESC, Date DESC',
-      );
-      if (results.length > 25) {
-        final idsToDelete = results
-            .sublist(25)
-            .map((result) => result["name"] as String)
-            .toList();
-        await _database!.delete(
-          table,
-          where: 'name IN (${idsToDelete.map((_) => '?').join(', ')})',
-          whereArgs: idsToDelete,
-        );
-      }
-    }
-
-    // Return the updated results
-    final List<Map<String, dynamic>> updatedResults = await _database!.query(
+    // Remove excess records if necessary
+    final List<Map<String, dynamic>> results = await _database!.query(
       table,
       orderBy: 'Score DESC, Date DESC',
     );
-    total_score = 0;
-    return updatedResults;
+    if (results.length > top) {
+      final idsToDelete = results
+          .sublist(top)
+          .map((result) => result["name"] as String)
+          .toList();
+      await _database!.delete(
+        table,
+        where: 'name IN (${idsToDelete.map((_) => '?').join(', ')})',
+        whereArgs: idsToDelete,
+      );
+    }
+
+    // total_score = 0;
+    //back of press main menu then change to 0
+    return results;
   }
 
   static Future<List<Map<String, dynamic>>> initialQuery() async {
     final List<Map<String, dynamic>> updatedResults = await _database!.query(
       table,
       orderBy: 'Score DESC, Date DESC',
-      limit: 25,
+      limit: top,
     );
     return updatedResults;
+  }
+
+  static Future<Map<String, int>> getLeaderboardData() async {
+    Map<String, int> output = new Map<String, int>();
+    final List<Map<String, dynamic>> updatedResults = await _database!.query(
+      table,
+      orderBy: 'Score DESC, Date DESC',
+      limit: top,
+    );
+    //minScore reading null
+    int minScore = updatedResults.isNotEmpty ? updatedResults.last['score'] : 0;
+    int number = updatedResults.length;
+    output["minScore"] = minScore;
+    output["number"] = number;
+    return output;
   }
 }
 
@@ -186,7 +162,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
   late Timer timer;
   late Timer initialTimer;
-  double _countdownTime = 5.0;
+  double _countdownTime = 3.0;
 
   late TextSpan span = TextSpan(
       text: 'remaining time\n${_countdownTime.toStringAsFixed(1)}',
@@ -590,47 +566,9 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final nameController = TextEditingController();
 
-  // final nameFocusNode = FocusNode();
-  bool pressed = false;
-  void _onButtonPressed() {
-    final tmp = nameController.text.trim();
-    _saveText(tmp);
-
-    if (tmp.isEmpty) {
-      // Vibrate the phone
-      Vibration.vibrate(duration: 500);
-
-      // Show a message
-      Fluttertoast.showToast(
-        msg: 'Please input name',
-        gravity: ToastGravity.TOP,
-      );
-
-      // Highlight the TextField
-      // nameFocusNode.requestFocus();
-    } else {
-      name = tmp;
-      pressed = true;
-    }
-  }
-
-  void _loadSavedText() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String savedText = prefs.getString('last_name') ?? '';
-    setState(() {
-      nameController.text = savedText;
-    });
-  }
-
-  void _saveText(String text) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('last_name', text);
-  }
-
   @override
   void initState() {
     super.initState();
-    _loadSavedText();
   }
 
   @override
@@ -639,10 +577,8 @@ class _MainPageState extends State<MainPage> {
         debugShowCheckedModeBanner: false,
         title: 'test`',
         home: Scaffold(
-            // resizeToAvoidBottomInset: false,
             body: Center(
           child: SingleChildScrollView(
-            // physics: const BouncingScrollPhysics(),
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -657,43 +593,20 @@ class _MainPageState extends State<MainPage> {
                         MediaQuery.of(context).size.height / 3),
                   ),
                 ),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("Player: "),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width /
-                            3, //adjust width
-                        child: TextField(
-                          textAlign: TextAlign.center,
-                          controller: nameController,
-                          // focusNode: nameFocusNode,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter your name',
-                          ),
-                          onSubmitted: (_) => _onButtonPressed(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(15),
                   child: Center(
                       child: ElevatedButton(
                           onPressed: () {
-                            _onButtonPressed();
-                            if (pressed) {
-                              level = min_level;
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      HomeSHARE(key: UniqueKey()),
-                                ),
-                              );
-                            }
+                            total_score = 0;
+                            level = min_level;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    HomeSHARE(key: UniqueKey()),
+                              ),
+                            );
                           },
                           child: const Center(child: Text('Start Game')))),
                 ),
@@ -730,23 +643,66 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   late Future<List<Map<String, dynamic>>> results;
   late List<int> temp_score_list;
+  bool askName = false;
+  late Future<Map<String, int>> leaderboardData;
+  final nameController = TextEditingController();
+  bool name_entered = false;
+
+  void _saveText(String text) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_name', text);
+  }
+
+  void _onButtonPressed() {
+    final tmp = nameController.text.trim();
+    _saveText(tmp);
+
+    if (tmp.isEmpty) {
+      // Vibrate the phone
+      Vibration.vibrate(duration: 500);
+
+      // Show a message
+      Fluttertoast.showToast(
+        msg: 'Please input name',
+        gravity: ToastGravity.TOP,
+      );
+
+      // Highlight the TextField
+      // nameFocusNode.requestFocus();
+    } else {
+      // pressed = true;
+      name_entered = true;
+      name = tmp;
+
+      setState(() {
+        results =
+            Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
+        ;
+      });
+    }
+  }
+
+  String formattedDate(String input) {
+    DateTime tmp = DateTime.parse(input);
+    input = intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(tmp);
+    return input;
+  }
+
   @override
   void initState() {
     super.initState();
     temp_score_list = List.from(score_list);
     score_list.clear();
 
-    if (insertScore == true) {
-      results = Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
-    } else {
-      results = Leaderboard.initialQuery();
-    }
+    results = Leaderboard.initialQuery();
+    leaderboardData = Leaderboard.getLeaderboardData();
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        total_score = 0;
         Navigator.of(context).popUntil((route) => route.isFirst);
         return true;
       },
@@ -759,131 +715,203 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               //   centerTitle: true,
               //   backgroundColor: Colors.blue,
               // ),
-              body: Center(
-                  child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+              body: Stack(
             children: <Widget>[
-              if (insertScore)
-                Center(
-                    child: Column(
-                  children: <Widget>[
-                    const Text(
-                      "SCORE",
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black,
-                          decoration: TextDecoration.underline),
-                    ),
-                    Text(
-                      total_score.toString(),
-                      style: const TextStyle(fontSize: 50, color: Colors.blue),
-                    ),
-                  ],
-                )),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: results,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    // Check if the query results have been loaded
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    // Extract the query results from the snapshot
-                    final results = snapshot.data;
-
-                    if (results.length == 0) {
-                      return const Center(
-                        child: Text("No leaderboard"),
-                      );
-                    }
-
-                    int rank = 1;
-
-                    // Build the table rows from the query results
-                    final tableRows = List<TableRow>.generate(
-                      results.length,
-                      (int index) => TableRow(
-                        children: <Widget>[
-                          TableCell(
-                            child: Text((rank++).toString()),
-                          ),
-                          TableCell(
-                            child: Text(results[index]['name']),
-                          ),
-                          TableCell(
-                            child: Text(results[index]['score'].toString()),
-                          ),
-                          TableCell(
-                            child: Text(results[index]['date'].toString()),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    // Build the table widget with the rows
-                    return Column(children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(10),
-                        child: const Text(
-                          "Leaderboard",
-                          style: TextStyle(fontSize: 50, color: Colors.black),
+              Center(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  if (insertScore)
+                    Center(
+                        child: Column(
+                      children: <Widget>[
+                        const Text(
+                          "SCORE",
+                          style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline),
                         ),
-                      ),
-                      Table(
-                        columnWidths: const {
-                          0: FlexColumnWidth(1.0),
-                          1: FlexColumnWidth(3.0),
-                          2: FlexColumnWidth(1.0),
-                          3: FlexColumnWidth(3.0),
-                        },
-                        border: TableBorder.all(),
-                        children: [
-                          const TableRow(
-                            decoration: BoxDecoration(
-                              color: Color.fromARGB(255, 127, 217, 255),
-                            ),
+                        Text(
+                          total_score.toString(),
+                          style:
+                              const TextStyle(fontSize: 50, color: Colors.blue),
+                        ),
+                      ],
+                    )),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: FutureBuilder<List<Map<String, dynamic>>>(
+                      future: results,
+                      builder: (BuildContext context, AsyncSnapshot snapshot) {
+                        // Check if the query results have been loaded
+                        if (!snapshot.hasData) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        // Extract the query results from the snapshot
+                        final results = snapshot.data;
+
+                        if (results.length == 0) {
+                          return const Center(
+                            child: Text("No leaderboard"),
+                          );
+                        }
+
+                        int rank = 1;
+
+                        // Build the table rows from the query results
+                        final tableRows = List<TableRow>.generate(
+                          min(results.length, top),
+                          (int index) => TableRow(
                             children: <Widget>[
                               TableCell(
-                                child: Text('Rank'),
+                                child: Text((rank++).toString()),
                               ),
                               TableCell(
-                                child: Text('Name'),
+                                child: Text(results[index]['name']),
                               ),
                               TableCell(
-                                child: Text('Score'),
+                                child: Text(results[index]['score'].toString()),
                               ),
                               TableCell(
-                                child: Text('Date'),
+                                child: Text(formattedDate(
+                                    results[index]['date'].toString())),
                               ),
                             ],
                           ),
-                          ...tableRows,
-                        ],
-                      )
-                    ]);
-                  },
-                ),
+                        );
+
+                        // Build the table widget with the rows
+                        return Column(children: <Widget>[
+                          const Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Text(
+                              "Leaderboard",
+                              style:
+                                  TextStyle(fontSize: 50, color: Colors.black),
+                            ),
+                          ),
+                          Table(
+                            columnWidths: const {
+                              0: FlexColumnWidth(1.0),
+                              1: FlexColumnWidth(3.0),
+                              2: FlexColumnWidth(1.0),
+                              3: FlexColumnWidth(3.0),
+                            },
+                            border: TableBorder.all(),
+                            children: [
+                              const TableRow(
+                                decoration: BoxDecoration(
+                                  color: Color.fromARGB(255, 127, 217, 255),
+                                ),
+                                children: <Widget>[
+                                  TableCell(
+                                    child: Text('Rank'),
+                                  ),
+                                  TableCell(
+                                    child: Text('Name'),
+                                  ),
+                                  TableCell(
+                                    child: Text('Score'),
+                                  ),
+                                  TableCell(
+                                    child: Text('Date'),
+                                  ),
+                                ],
+                              ),
+                              ...tableRows,
+                            ],
+                          )
+                        ]);
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(
+                        15), //apply padding to all four sides
+                    child: Center(
+                        child: ElevatedButton(
+                            onPressed: () {
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //       builder: (context) => const MainPage()),
+                              // );
+                              total_score = 0;
+                              Navigator.of(context)
+                                  .popUntil((route) => route.isFirst);
+                            },
+                            child: const Center(child: Text('Main menu')))),
+                  ),
+                ],
+              )),
+              FutureBuilder<Map<String, int>>(
+                future: leaderboardData,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData &&
+                      (snapshot.data!["minScore"]! <= total_score ||
+                          snapshot.data!["number"]! < top) &&
+                      !name_entered) {
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.height -
+                          AppBar().preferredSize.height,
+                      child: ModalBarrier(
+                        dismissible: false,
+                        color: Colors.black.withOpacity(0.7),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.all(15), //apply padding to all four sides
-                child: Center(
-                    child: ElevatedButton(
-                        onPressed: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => const MainPage()),
-                          // );
-                          Navigator.of(context)
-                              .popUntil((route) => route.isFirst);
-                        },
-                        child: const Center(child: Text('Main menu')))),
+              FutureBuilder<Map<String, int>>(
+                future: leaderboardData,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData &&
+                      (snapshot.data!["minScore"]! <= total_score ||
+                          snapshot.data!["number"]! < top) &&
+                      !name_entered) {
+                    return Center(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(15),
+                            child: Text(
+                              style:
+                                  TextStyle(fontSize: 32, color: Colors.white),
+                              textAlign: TextAlign.center,
+                              "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width /
+                              2, //adjust width
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              hintText: 'Enter your name',
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            onSubmitted: (_) => _onButtonPressed(),
+                          ),
+                        ),
+                      ],
+                    ));
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
             ],
-          )))),
+          ))),
     );
   }
 }

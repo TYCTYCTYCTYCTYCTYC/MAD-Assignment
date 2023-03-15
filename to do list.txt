@@ -25,8 +25,25 @@ unable to back on modal barrier active
 ontapdown doesnt change to bop at the last remaining mishy of the level
 
 unfollowed requirements:
-3.	That the player can enter his/name if the score achieved is good enough to enter the Top 25 score table. (easy)
+3.	That the player can enter his/name if the score achieved is good enough to enter the Top 25 score table. (hard!)
 question: do we enter before or after game ends? 
 
 unresolved issues:
 resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s
+
+3.	That the player can enter his/name if the score achieved is good enough to enter the Top 25 score table. (hard!)
+to do:
+add name (can repeat) at leaderboard page load
+=> change PK from name to (name, datetime)
+=> load initial table
+=> retrieve min score
+
+if total score >= min score in top 25 table
+=> add modal barrier
+=> request name
+=> insert record, sort, and reload top 25 table
+
+if total score < min score in top 25 table
+=> show score
+=> add msg saying didnt make it into LeaderBoards
+(no need to modify table in any way)
