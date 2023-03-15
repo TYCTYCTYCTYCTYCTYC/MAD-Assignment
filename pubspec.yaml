@@ -39,6 +39,7 @@ dependencies:
   vibration: ^1.7.6
   fluttertoast: ^8.2.1
   shared_preferences: ^2.0.18
+  intl: ^0.18.0
   #a: ^1.0.0
 
 dev_dependencies:

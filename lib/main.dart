@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:vibration/vibration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart' as intl;
 
 int total_score = 0;
 String? name = null;
@@ -76,7 +77,7 @@ class Leaderboard {
         await _database!.update(
           table,
           {
-            'date': date.toIso8601String().substring(0, 10),
+            'date': intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(date),
             'score': score,
           },
           where: 'name = ?',
@@ -88,7 +89,7 @@ class Leaderboard {
         await _database!.update(
           table,
           {
-            'date': date.toIso8601String().substring(0, 10),
+            'date': intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(date),
           },
           where: 'name = ?',
           whereArgs: [name],
@@ -98,7 +99,7 @@ class Leaderboard {
       // Insert the new record if the name doesn't exist in the database
       await _database!.insert(table, {
         "name": name,
-        "date": date.toIso8601String().substring(0, 10),
+        "date": intl.DateFormat('dd/MM/yyyy HH:mm:ss').format(date),
         "score": score,
       });
 
@@ -779,84 +780,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     ),
                   ],
                 )),
-              // if (insertScore)
-              //   const Text(
-              //     "Evaluation",
-              //     style: TextStyle(fontSize: 64, color: Colors.black),
-              //   ),
-              // if (insertScore)
-              //   Padding(
-              //     padding: const EdgeInsets.fromLTRB(15, 15, 15, 60),
-              //     child: SizedBox(
-              //       width: MediaQuery.of(context).size.width * 0.8,
-              //       child: Table(
-              //         border: TableBorder.all(),
-              //         columnWidths: const <int, TableColumnWidth>{
-              //           0: FlexColumnWidth(1),
-              //           1: FlexColumnWidth(1),
-              //         },
-              //         children: <TableRow>[
-              //           for (int i = 0; i < temp_score_list.length; i++)
-              //             TableRow(
-              //               decoration: BoxDecoration(
-              //                 color: Colors.grey.shade300,
-              //               ),
-              //               children: <Widget>[
-              //                 TableCell(
-              //                   child: Padding(
-              //                     padding: const EdgeInsets.all(8.0),
-              //                     child: Text(
-              //                       'Level ${i + 1}',
-              //                       textAlign: TextAlign.center,
-              //                     ),
-              //                   ),
-              //                 ),
-              //                 TableCell(
-              //                   child: Padding(
-              //                     padding: const EdgeInsets.all(8.0),
-              //                     child: Text(
-              //                       '${temp_score_list[i]}',
-              //                       textAlign: TextAlign.center,
-              //                     ),
-              //                   ),
-              //                 ),
-              //               ],
-              //             ),
-              //           TableRow(
-              //             decoration: BoxDecoration(
-              //               color: Colors.blue,
-              //             ),
-              //             children: <Widget>[
-              //               TableCell(
-              //                 child: Padding(
-              //                   padding: const EdgeInsets.all(8.0),
-              //                   child: Text(
-              //                     'Total Score',
-              //                     textAlign: TextAlign.center,
-              //                     style: TextStyle(
-              //                       fontWeight: FontWeight.bold,
-              //                     ),
-              //                   ),
-              //                 ),
-              //               ),
-              //               TableCell(
-              //                 child: Padding(
-              //                   padding: const EdgeInsets.all(8.0),
-              //                   child: Text(
-              //                     '${temp_score_list.fold(0, (prev, curr) => prev + curr)}',
-              //                     textAlign: TextAlign.center,
-              //                     style: TextStyle(
-              //                       fontWeight: FontWeight.bold,
-              //                     ),
-              //                   ),
-              //                 ),
-              //               ),
-              //             ],
-              //           ),
-              //         ],
-              //       ),
-              //     ),
-              //   ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -890,10 +813,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             child: Text(results[index]['name']),
                           ),
                           TableCell(
-                            child: Text(results[index]['date'].toString()),
+                            child: Text(results[index]['score'].toString()),
                           ),
                           TableCell(
-                            child: Text(results[index]['score'].toString()),
+                            child: Text(results[index]['date'].toString()),
                           ),
                         ],
                       ),
@@ -901,16 +824,19 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
                     // Build the table widget with the rows
                     return Column(children: <Widget>[
-                      const Text(
-                        "Leaderboard",
-                        style: TextStyle(fontSize: 64, color: Colors.black),
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                        child: const Text(
+                          "Leaderboard",
+                          style: TextStyle(fontSize: 50, color: Colors.black),
+                        ),
                       ),
                       Table(
                         columnWidths: const {
                           0: FlexColumnWidth(1.0),
-                          1: FlexColumnWidth(1.0),
+                          1: FlexColumnWidth(3.0),
                           2: FlexColumnWidth(1.0),
-                          3: FlexColumnWidth(1.0),
+                          3: FlexColumnWidth(3.0),
                         },
                         border: TableBorder.all(),
                         children: [
@@ -926,10 +852,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                 child: Text('Name'),
                               ),
                               TableCell(
-                                child: Text('Date'),
+                                child: Text('Score'),
                               ),
                               TableCell(
-                                child: Text('Score'),
+                                child: Text('Date'),
                               ),
                             ],
                           ),
