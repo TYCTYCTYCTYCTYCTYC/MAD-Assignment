@@ -13,9 +13,10 @@ int total_score = 0;
 String? name = null;
 bool played = false;
 const int min_level = 1;
-const int max_level = 5;
+const int max_level = 3;
 int level = min_level;
 bool insertScore = false;
+List<int> score_list = [];
 
 class Leaderboard {
   static final _databaseName = 'leaderboard.db';
@@ -188,7 +189,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
   late TextSpan span = TextSpan(
       text: 'remaining time\n${_countdownTime.toStringAsFixed(1)}',
-      style: TextStyle(fontSize: 16, color: Colors.black));
+      style: const TextStyle(fontSize: 16, color: Colors.black));
   late TextPainter tp = TextPainter(
       text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
   late double textHeight;
@@ -200,7 +201,9 @@ class _HomeSHAREState extends State<HomeSHARE> {
   late List<int> remaining =
       List.generate(grid_count * grid_count, (index) => index);
 
-  bool _isGreyedOut = true, isclick = false;
+  bool _isGreyedOut = true,
+      isclick = false,
+      _startTimerCountdown = false; //dont really use isclick
   int _countdownSeconds = 3;
   late int _startCountdownSeconds;
 
@@ -218,7 +221,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
     timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
         if (_countdownTime <= 0) {
-          endGame();
+          promptCont();
         } else {
           _countdownTime = max(_countdownTime - 0.1, 0);
         }
@@ -231,6 +234,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
     setState(() {
       _isGreyedOut = true;
       isclick = true;
+      _startTimerCountdown = true; //manually set on end of promptCont snippet
     });
 
     initialTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -242,6 +246,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
         timer.cancel();
         setState(() {
           _isGreyedOut = false;
+          _startTimerCountdown = false;
           image_status[remaining[0]] = 1;
           _startTimer();
         });
@@ -249,13 +254,27 @@ class _HomeSHAREState extends State<HomeSHARE> {
     });
   }
 
+  void promptCont() {
+    //hide timer countdown with another boolean logic
+    timer.cancel();
+    total_score += score;
+    score_list.add(score);
+    score = 0;
+
+    _isGreyedOut = true;
+    _startTimerCountdown = false;
+
+    //show score screen if grey and !startTimer
+
+    //show new screen
+    //how to run
+  }
+
   void endGame() {
     //stop countdown
     timer.cancel();
-    total_score += score;
-    score = 0;
 
-    if (level + 1 <= max_level) {
+    if (level < max_level) {
       setState(() {
         level++;
 
@@ -276,6 +295,9 @@ class _HomeSHAREState extends State<HomeSHARE> {
         _startCountdown();
       });
     } else {
+      total_score += score;
+      score_list.add(score);
+      score = 0;
       insertScore = true;
       Navigator.push(
         context,
@@ -364,7 +386,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                                             if (remaining.isNotEmpty == true) {
                                               image_status[remaining[0]] = 1;
                                             } else {
-                                              endGame();
+                                              promptCont();
                                             }
                                           }
                                         });
@@ -414,7 +436,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
                           color: Colors.black.withOpacity(0.7),
                         ),
                       ),
-                    if (_isGreyedOut)
+                    if (_isGreyedOut && _startTimerCountdown)
                       Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -425,6 +447,125 @@ class _HomeSHAREState extends State<HomeSHARE> {
                               style: const TextStyle(
                                   fontSize: 64, color: Colors.white),
                             ),
+                          ],
+                        ),
+                      ),
+                    if (_isGreyedOut && !_startTimerCountdown)
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Evaluation",
+                              style:
+                                  TextStyle(fontSize: 64, color: Colors.white),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(15),
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                child: Table(
+                                  border: TableBorder.all(),
+                                  columnWidths: const <int, TableColumnWidth>{
+                                    0: FlexColumnWidth(1),
+                                    1: FlexColumnWidth(1),
+                                  },
+                                  children: <TableRow>[
+                                    for (int i = 0; i < score_list.length; i++)
+                                      TableRow(
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        children: <Widget>[
+                                          TableCell(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Level ${i + 1}',
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                          TableCell(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                '${score_list[i]}',
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    TableRow(
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                      ),
+                                      children: <Widget>[
+                                        TableCell(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Total Score',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        TableCell(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              '${score_list.fold(0, (prev, curr) => prev + curr)}',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                //quit button
+                                Padding(
+                                  padding: const EdgeInsets.all(15),
+                                  child: ElevatedButton(
+                                      onPressed: () {
+                                        insertScore = true;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const LeaderboardPage()),
+                                        );
+                                      },
+                                      child: const Center(child: Text('Quit'))),
+                                ),
+                                if (level < max_level)
+                                  Padding(
+                                    padding: EdgeInsets.all(15),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          endGame();
+                                        },
+                                        child: const Center(
+                                            child: Text('Continue'))),
+                                  )
+                                //continut botton
+                              ],
+                            )
                           ],
                         ),
                       ),
@@ -587,10 +728,13 @@ class LeaderboardPage extends StatefulWidget {
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
   late Future<List<Map<String, dynamic>>> results;
-
+  late List<int> temp_score_list;
   @override
   void initState() {
     super.initState();
+    temp_score_list = List.from(score_list);
+    score_list.clear();
+
     if (insertScore == true) {
       results = Leaderboard.insertAndQuery(name!, DateTime.now(), total_score);
     } else {
@@ -635,6 +779,84 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     ),
                   ],
                 )),
+              // if (insertScore)
+              //   const Text(
+              //     "Evaluation",
+              //     style: TextStyle(fontSize: 64, color: Colors.black),
+              //   ),
+              // if (insertScore)
+              //   Padding(
+              //     padding: const EdgeInsets.fromLTRB(15, 15, 15, 60),
+              //     child: SizedBox(
+              //       width: MediaQuery.of(context).size.width * 0.8,
+              //       child: Table(
+              //         border: TableBorder.all(),
+              //         columnWidths: const <int, TableColumnWidth>{
+              //           0: FlexColumnWidth(1),
+              //           1: FlexColumnWidth(1),
+              //         },
+              //         children: <TableRow>[
+              //           for (int i = 0; i < temp_score_list.length; i++)
+              //             TableRow(
+              //               decoration: BoxDecoration(
+              //                 color: Colors.grey.shade300,
+              //               ),
+              //               children: <Widget>[
+              //                 TableCell(
+              //                   child: Padding(
+              //                     padding: const EdgeInsets.all(8.0),
+              //                     child: Text(
+              //                       'Level ${i + 1}',
+              //                       textAlign: TextAlign.center,
+              //                     ),
+              //                   ),
+              //                 ),
+              //                 TableCell(
+              //                   child: Padding(
+              //                     padding: const EdgeInsets.all(8.0),
+              //                     child: Text(
+              //                       '${temp_score_list[i]}',
+              //                       textAlign: TextAlign.center,
+              //                     ),
+              //                   ),
+              //                 ),
+              //               ],
+              //             ),
+              //           TableRow(
+              //             decoration: BoxDecoration(
+              //               color: Colors.blue,
+              //             ),
+              //             children: <Widget>[
+              //               TableCell(
+              //                 child: Padding(
+              //                   padding: const EdgeInsets.all(8.0),
+              //                   child: Text(
+              //                     'Total Score',
+              //                     textAlign: TextAlign.center,
+              //                     style: TextStyle(
+              //                       fontWeight: FontWeight.bold,
+              //                     ),
+              //                   ),
+              //                 ),
+              //               ),
+              //               TableCell(
+              //                 child: Padding(
+              //                   padding: const EdgeInsets.all(8.0),
+              //                   child: Text(
+              //                     '${temp_score_list.fold(0, (prev, curr) => prev + curr)}',
+              //                     textAlign: TextAlign.center,
+              //                     style: TextStyle(
+              //                       fontWeight: FontWeight.bold,
+              //                     ),
+              //                   ),
+              //                 ),
+              //               ),
+              //             ],
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -678,37 +900,43 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     );
 
                     // Build the table widget with the rows
-                    return Table(
-                      columnWidths: const {
-                        0: FlexColumnWidth(1.0),
-                        1: FlexColumnWidth(1.0),
-                        2: FlexColumnWidth(1.0),
-                        3: FlexColumnWidth(1.0),
-                      },
-                      border: TableBorder.all(),
-                      children: [
-                        const TableRow(
-                          decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 127, 217, 255),
+                    return Column(children: <Widget>[
+                      const Text(
+                        "Leaderboard",
+                        style: TextStyle(fontSize: 64, color: Colors.black),
+                      ),
+                      Table(
+                        columnWidths: const {
+                          0: FlexColumnWidth(1.0),
+                          1: FlexColumnWidth(1.0),
+                          2: FlexColumnWidth(1.0),
+                          3: FlexColumnWidth(1.0),
+                        },
+                        border: TableBorder.all(),
+                        children: [
+                          const TableRow(
+                            decoration: BoxDecoration(
+                              color: Color.fromARGB(255, 127, 217, 255),
+                            ),
+                            children: <Widget>[
+                              TableCell(
+                                child: Text('Rank'),
+                              ),
+                              TableCell(
+                                child: Text('Name'),
+                              ),
+                              TableCell(
+                                child: Text('Date'),
+                              ),
+                              TableCell(
+                                child: Text('Score'),
+                              ),
+                            ],
                           ),
-                          children: <Widget>[
-                            TableCell(
-                              child: Text('Rank'),
-                            ),
-                            TableCell(
-                              child: Text('Name'),
-                            ),
-                            TableCell(
-                              child: Text('Date'),
-                            ),
-                            TableCell(
-                              child: Text('Score'),
-                            ),
-                          ],
-                        ),
-                        ...tableRows,
-                      ],
-                    );
+                          ...tableRows,
+                        ],
+                      )
+                    ]);
                   },
                 ),
               ),
@@ -718,14 +946,15 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 child: Center(
                     child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MainPage()),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (context) => const MainPage()),
+                          // );
+                          Navigator.of(context)
+                              .popUntil((route) => route.isFirst);
                         },
-                        child:
-                            const Center(child: Text('Go back to Main Page')))),
+                        child: const Center(child: Text('Main menu')))),
               ),
             ],
           )))),
