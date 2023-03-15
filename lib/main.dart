@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -21,14 +23,10 @@ List<int> score_list = [];
 const int top = 3;
 
 class Leaderboard {
-  static final _databaseName = 'leaderboard.db';
-  static final _databaseVersion = 1;
+  static const _databaseName = 'leaderboard.db';
+  static const _databaseVersion = 1;
   static Database? _database;
-
-  static final table = 'leaderboard';
-  // static final String name;
-  // static final DateTime date;
-  // static final int score;
+  static const table = 'leaderboard';
 
   Leaderboard._privateConstructor();
   static final Leaderboard instance = Leaderboard._privateConstructor();
@@ -49,7 +47,6 @@ class Leaderboard {
   }
 
   Future _onCreate(Database db, int version) async {
-    //come back to date later
     await db.execute('''
           CREATE TABLE Leaderboard (
           name TEXT NOT NULL,
@@ -86,8 +83,6 @@ class Leaderboard {
       );
     }
 
-    // total_score = 0;
-    //back of press main menu then change to 0
     return results;
   }
 
@@ -101,13 +96,13 @@ class Leaderboard {
   }
 
   static Future<Map<String, int>> getLeaderboardData() async {
-    Map<String, int> output = new Map<String, int>();
+    Map<String, int> output = <String, int>{};
     final List<Map<String, dynamic>> updatedResults = await _database!.query(
       table,
       orderBy: 'Score DESC, Date DESC',
       limit: top,
     );
-    //minScore reading null
+
     int minScore = updatedResults.isNotEmpty ? updatedResults.last['score'] : 0;
     int number = updatedResults.length;
     output["minScore"] = minScore;
@@ -132,38 +127,20 @@ class HomeSHARE extends StatefulWidget {
 }
 
 class _HomeSHAREState extends State<HomeSHARE> {
+  //page state data
+  bool _isGreyedOut = true, _startTimerCountdown = false;
+
+  //timer and score data
+  int _countdownSeconds = 3;
   int active_index = 0;
   int grid_count = level + 1;
-  // int cur_index = 0;
-  // int score = 0;
-  double game_timer = 5;
-  final double appBarHeight = AppBar().preferredSize.height;
-  //final double bottomNavigationBarHeight = kBottomNavigationBarHeight;
-
   int score = 0;
+  late int _startCountdownSeconds;
 
-  late final Size size = MediaQuery.of(context).size;
-  late final double height = size.height - appBarHeight;
-  late final double width = size.width;
-
-  // List<String> images = [
-  //   "assets/images/no_mishy.png",
-  //   "assets/images/mishy_pop.png",
-  //   "assets/images/mishy_bop.png",
-  //   "assets/images/mishy_sadge.png"
-  // ];
-
-  List<ImageProvider> images = [
-    AssetImage('assets/images/no_mishy.png'),
-    AssetImage('assets/images/mishy_pop.png'),
-    AssetImage('assets/images/mishy_bop.png'),
-    AssetImage('assets/images/mishy_sadge.png')
-  ];
+  double _countdownTime = 3.0; //toggleable parameter
 
   late Timer timer;
   late Timer initialTimer;
-  double _countdownTime = 3.0;
-
   late TextSpan span = TextSpan(
       text: 'remaining time\n${_countdownTime.toStringAsFixed(1)}',
       style: const TextStyle(fontSize: 16, color: Colors.black));
@@ -171,18 +148,17 @@ class _HomeSHAREState extends State<HomeSHARE> {
       text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
   late double textHeight;
 
-  late List<double> borders =
-      List.generate(grid_count * grid_count, (index) => 0);
+  //image state data
   late List<int> image_status =
       List.generate(grid_count * grid_count, (index) => 0);
   late List<int> remaining =
       List.generate(grid_count * grid_count, (index) => index);
-
-  bool _isGreyedOut = true,
-      isclick = false,
-      _startTimerCountdown = false; //dont really use isclick
-  int _countdownSeconds = 3;
-  late int _startCountdownSeconds;
+  List<ImageProvider> images = [
+    const AssetImage('assets/images/no_mishy.png'),
+    const AssetImage('assets/images/mishy_pop.png'),
+    const AssetImage('assets/images/mishy_bop.png'),
+    const AssetImage('assets/images/mishy_sadge.png')
+  ];
 
   String format(int countdownSeconds) {
     if (_countdownSeconds == _startCountdownSeconds) {
@@ -210,7 +186,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
     _countdownSeconds += 2;
     setState(() {
       _isGreyedOut = true;
-      isclick = true;
       _startTimerCountdown = true; //manually set on end of promptCont snippet
     });
 
@@ -232,7 +207,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
   }
 
   void promptCont() {
-    //hide timer countdown with another boolean logic
     timer.cancel();
     total_score += score;
     score_list.add(score);
@@ -240,11 +214,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
     _isGreyedOut = true;
     _startTimerCountdown = false;
-
-    //show score screen if grey and !startTimer
-
-    //show new screen
-    //how to run
   }
 
   void endGame() {
@@ -257,11 +226,9 @@ class _HomeSHAREState extends State<HomeSHARE> {
 
         //reinitialize
         grid_count = level + 1;
-        borders = List.generate(grid_count * grid_count, (index) => 0);
         image_status = List.generate(grid_count * grid_count, (index) => 0);
         remaining = List.generate(grid_count * grid_count, (index) => index);
         _isGreyedOut = true;
-        isclick = false;
         _countdownSeconds = 3;
         _countdownTime = 5.0;
 
@@ -283,12 +250,6 @@ class _HomeSHAREState extends State<HomeSHARE> {
     }
   }
 
-  // void loadImages() async {
-  //   for (int i = 0; i < images.length; i++) {
-  //     await precacheImage(images[i], context);
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
@@ -297,15 +258,7 @@ class _HomeSHAREState extends State<HomeSHARE> {
     textHeight = tp.size.height;
     _startCountdownSeconds = _countdownSeconds + 2;
     _startCountdown();
-
-    // loadImages();
   }
-
-  // @override
-  // void dispose() {
-  //   _timer.cancel();
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -320,232 +273,220 @@ class _HomeSHAREState extends State<HomeSHARE> {
                 centerTitle: true,
                 backgroundColor: Colors.blue,
               ),
-              body: Stack(
-                  //alignment: Alignment.center,
-                  children: <Widget>[
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Text(
-                            "remaining time\n${_countdownTime.toStringAsFixed(1)}s",
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                fontSize: 16, color: Colors.black),
-                          ),
-                          Builder(builder: (BuildContext context) {
-                            return Center(
-                                child: SizedBox(
-                              height: min(
-                                  MediaQuery.of(context).size.height -
-                                      AppBar().preferredSize.height -
-                                      textHeight,
-                                  MediaQuery.of(context).size.width),
-                              width: min(
-                                  MediaQuery.of(context).size.height -
-                                      AppBar().preferredSize.height -
-                                      textHeight,
-                                  MediaQuery.of(context).size.width),
-                              child: GridView.count(
-                                crossAxisCount: grid_count,
-                                children: List.generate(grid_count * grid_count,
-                                    (index) {
-                                  return Material(
-                                    child: GestureDetector(
-                                      onTapDown: (TapDownDetails details) {
-                                        setState(() {
-                                          if (index == remaining[0]) {
-                                            score++;
-                                            image_status[index] = 2;
-                                            remaining.removeAt(0);
-                                            if (remaining.isNotEmpty == true) {
-                                              image_status[remaining[0]] = 1;
-                                            } else {
-                                              promptCont();
-                                            }
-                                          }
-                                        });
-                                      },
-                                      onTap: () {
-                                        setState(() {
-                                          Future.delayed(const Duration(
-                                                  milliseconds: 150))
-                                              .then((value) {
-                                            if (image_status[index] == 2) {
-                                              image_status[index] = 3;
-                                            }
-                                          });
-                                        });
-                                      },
-                                      child: ClipRRect(
-                                          child: Container(
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: images[image_status[index]],
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      )),
-                                    ),
-                                  );
-                                }),
-                              ),
-                            ));
-                          })
-                          // Padding(
-                          //     padding: EdgeInsets.all(15),
-                          //     child: ElevatedButton(
-                          //         onPressed: () {
-                          //           Navigator.pop(context);
-                          //         },
-                          //         child: const Text('Exit Game')))
-                        ],
+              body: Stack(children: <Widget>[
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        "remaining time\n${_countdownTime.toStringAsFixed(1)}s",
+                        textAlign: TextAlign.center,
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
                       ),
-                    ),
-                    if (_isGreyedOut)
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height -
-                            AppBar().preferredSize.height,
-                        child: ModalBarrier(
-                          dismissible: false,
-                          color: Colors.black.withOpacity(0.7),
-                        ),
-                      ),
-                    if (_isGreyedOut && _startTimerCountdown)
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              format(_countdownSeconds),
-                              style: const TextStyle(
-                                  fontSize: 64, color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (_isGreyedOut && !_startTimerCountdown)
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              "Evaluation",
-                              style:
-                                  TextStyle(fontSize: 64, color: Colors.white),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(15),
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.8,
-                                child: Table(
-                                  border: TableBorder.all(),
-                                  columnWidths: const <int, TableColumnWidth>{
-                                    0: FlexColumnWidth(1),
-                                    1: FlexColumnWidth(1),
+                      Builder(builder: (BuildContext context) {
+                        return Center(
+                            child: SizedBox(
+                          height: min(
+                              MediaQuery.of(context).size.height -
+                                  AppBar().preferredSize.height -
+                                  textHeight,
+                              MediaQuery.of(context).size.width),
+                          width: min(
+                              MediaQuery.of(context).size.height -
+                                  AppBar().preferredSize.height -
+                                  textHeight,
+                              MediaQuery.of(context).size.width),
+                          child: GridView.count(
+                            crossAxisCount: grid_count,
+                            children:
+                                List.generate(grid_count * grid_count, (index) {
+                              return Material(
+                                child: GestureDetector(
+                                  onTapDown: (TapDownDetails details) {
+                                    setState(() {
+                                      if (index == remaining[0]) {
+                                        score++;
+                                        image_status[index] = 2;
+                                        remaining.removeAt(0);
+                                        if (remaining.isNotEmpty == true) {
+                                          image_status[remaining[0]] = 1;
+                                        } else {
+                                          promptCont();
+                                        }
+                                      }
+                                    });
                                   },
-                                  children: <TableRow>[
-                                    for (int i = 0; i < score_list.length; i++)
-                                      TableRow(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        children: <Widget>[
-                                          TableCell(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Text(
-                                                'Level ${i + 1}',
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ),
-                                          TableCell(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Text(
-                                                '${score_list[i]}',
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                  onTap: () {
+                                    setState(() {
+                                      Future.delayed(
+                                              const Duration(milliseconds: 150))
+                                          .then((value) {
+                                        if (image_status[index] == 2) {
+                                          image_status[index] = 3;
+                                        }
+                                      });
+                                    });
+                                  },
+                                  child: ClipRRect(
+                                      child: Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: images[image_status[index]],
+                                        fit: BoxFit.cover,
                                       ),
-                                    TableRow(
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue,
+                                    ),
+                                  )),
+                                ),
+                              );
+                            }),
+                          ),
+                        ));
+                      })
+                    ],
+                  ),
+                ),
+                if (_isGreyedOut)
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height -
+                        AppBar().preferredSize.height,
+                    child: ModalBarrier(
+                      dismissible: false,
+                      color: Colors.black.withOpacity(0.7),
+                    ),
+                  ),
+                if (_isGreyedOut && _startTimerCountdown)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          format(_countdownSeconds),
+                          style: const TextStyle(
+                              fontSize: 64, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_isGreyedOut && !_startTimerCountdown)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          "Evaluation",
+                          style: TextStyle(fontSize: 64, color: Colors.white),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: Table(
+                              border: TableBorder.all(),
+                              columnWidths: const <int, TableColumnWidth>{
+                                0: FlexColumnWidth(1),
+                                1: FlexColumnWidth(1),
+                              },
+                              children: <TableRow>[
+                                for (int i = 0; i < score_list.length; i++)
+                                  TableRow(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    children: <Widget>[
+                                      TableCell(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Level ${i + 1}',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
                                       ),
-                                      children: <Widget>[
-                                        TableCell(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Total Score',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
+                                      TableCell(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            '${score_list[i]}',
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
-                                        TableCell(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              '${score_list.fold(0, (prev, curr) => prev + curr)}',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                TableRow(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue,
+                                  ),
+                                  children: <Widget>[
+                                    const TableCell(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text(
+                                          'Total Score',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                    ),
+                                    TableCell(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          '${score_list.fold(0, (prev, curr) => prev + curr)}',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                //quit button
-                                Padding(
-                                  padding: const EdgeInsets.all(15),
-                                  child: ElevatedButton(
-                                      onPressed: () {
-                                        insertScore = true;
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const LeaderboardPage()),
-                                        );
-                                      },
-                                      child: const Center(child: Text('Quit'))),
-                                ),
-                                if (level < max_level)
-                                  Padding(
-                                    padding: EdgeInsets.all(15),
-                                    child: ElevatedButton(
-                                        onPressed: () {
-                                          endGame();
-                                        },
-                                        child: const Center(
-                                            child: Text('Continue'))),
-                                  )
-                                //continut botton
                               ],
-                            )
-                          ],
+                            ),
+                          ),
                         ),
-                      ),
-                  ]),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            //quit button
+                            Padding(
+                              padding: const EdgeInsets.all(15),
+                              child: ElevatedButton(
+                                  onPressed: () {
+                                    insertScore = true;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const LeaderboardPage()),
+                                    );
+                                  },
+                                  child: const Center(child: Text('Quit'))),
+                            ),
+                            if (level < max_level)
+                              Padding(
+                                padding: const EdgeInsets.all(15),
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      endGame();
+                                    },
+                                    child:
+                                        const Center(child: Text('Continue'))),
+                              )
+                            //continut botton
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+              ]),
             )),
         onWillPop: () async {
           timer.cancel();
@@ -586,10 +527,10 @@ class _MainPageState extends State<MainPage> {
                 Center(
                   child: Image.asset(
                     'assets/images/title.png',
-                    width: max(MediaQuery.of(context).size.width / 3,
-                        MediaQuery.of(context).size.height / 3),
-                    height: max(MediaQuery.of(context).size.width / 3,
-                        MediaQuery.of(context).size.height / 3),
+                    width: max(MediaQuery.of(context).size.width / 2,
+                        MediaQuery.of(context).size.height / 2),
+                    height: max(MediaQuery.of(context).size.width / 2,
+                        MediaQuery.of(context).size.height / 2),
                   ),
                 ),
                 Padding(
@@ -640,12 +581,12 @@ class LeaderboardPage extends StatefulWidget {
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
-  late Future<List<Map<String, dynamic>>> results;
-  late List<int> temp_score_list;
-  late Future<Map<String, int>> leaderboardData;
-  final nameController = TextEditingController();
   bool name_entered = false;
+  final nameController = TextEditingController();
   late DateTime now;
+  late List<int> temp_score_list;
+  late Future<List<Map<String, dynamic>>> results;
+  late Future<Map<String, int>> leaderboardData;
 
   void _saveText(String text) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -657,19 +598,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     _saveText(tmp);
 
     if (tmp.isEmpty) {
-      // Vibrate the phone
       Vibration.vibrate(duration: 500);
 
-      // Show a message
       Fluttertoast.showToast(
         msg: 'Please input name',
-        gravity: ToastGravity.TOP,
+        gravity: ToastGravity.BOTTOM,
       );
-
-      // Highlight the TextField
-      // nameFocusNode.requestFocus();
     } else {
-      // pressed = true;
       name_entered = true;
       name = tmp;
 
@@ -709,240 +644,229 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           debugShowCheckedModeBanner: false,
           title: 'test`',
           home: Scaffold(
-              // appBar: AppBar(
-              //   title: const Text('test2', style: TextStyle(fontSize: 30)),
-              //   centerTitle: true,
-              //   backgroundColor: Colors.blue,
-              // ),
+              appBar: AppBar(
+                title:
+                    const Text('Leaderboard', style: TextStyle(fontSize: 30)),
+                centerTitle: true,
+                backgroundColor: Colors.blue,
+              ),
               body: Stack(
-            children: <Widget>[
-              Center(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  if (insertScore)
-                    Center(
-                        child: Column(
-                      children: <Widget>[
-                        const Text(
-                          " TOTAL SCORE",
-                          style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.black,
-                              decoration: TextDecoration.underline),
-                        ),
-                        Text(
-                          total_score.toString(),
-                          style:
-                              const TextStyle(fontSize: 50, color: Colors.blue),
-                        ),
-                      ],
-                    )),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: FutureBuilder<List<Map<String, dynamic>>>(
-                      future: results,
-                      builder: (BuildContext context, AsyncSnapshot snapshot) {
-                        // Check if the query results have been loaded
-                        if (!snapshot.hasData) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-
-                        // Extract the query results from the snapshot
-                        final results = snapshot.data;
-
-                        if (results.length == 0) {
-                          return const Center(
-                            child: Text("No leaderboard"),
-                          );
-                        }
-
-                        int rank = 1;
-
-                        // Build the table rows from the query results
-                        final tableRows = List<TableRow>.generate(
-                            min(results.length, top),
-                            (int index) => TableRow(
-                                  children: [
-                                    TableCell(
-                                      child: Container(
-                                        color: results[index]['name'] == name &&
-                                                results[index]['date']
-                                                        .toString() ==
-                                                    now.toIso8601String()
-                                            ? Color.fromARGB(255, 127, 217, 255)
-                                            : Colors.white,
-                                        child: Text((rank++).toString()),
-                                      ),
-                                    ),
-                                    TableCell(
-                                      child: Container(
-                                        color: results[index]['name'] == name &&
-                                                results[index]['date']
-                                                        .toString() ==
-                                                    now.toIso8601String()
-                                            ? Color.fromARGB(255, 127, 217, 255)
-                                            : Colors.white,
-                                        child: Text(results[index]['name']),
-                                      ),
-                                    ),
-                                    TableCell(
-                                      child: Container(
-                                        color: results[index]['name'] == name &&
-                                                results[index]['date']
-                                                        .toString() ==
-                                                    now.toIso8601String()
-                                            ? Color.fromARGB(255, 127, 217, 255)
-                                            : Colors.white,
-                                        child: Text(
-                                            results[index]['score'].toString()),
-                                      ),
-                                    ),
-                                    TableCell(
-                                      child: Container(
-                                        color: results[index]['name'] == name &&
-                                                results[index]['date']
-                                                        .toString() ==
-                                                    now.toIso8601String()
-                                            ? Color.fromARGB(255, 127, 217, 255)
-                                            : Colors.white,
-                                        child: Text(formattedDate(
-                                            results[index]['date'].toString())),
-                                      ),
-                                    ),
-                                  ],
-                                ));
-
-                        // Build the table widget with the rows
-                        return Column(children: <Widget>[
-                          const Padding(
-                            padding: EdgeInsets.all(10),
-                            child: Text(
-                              "Leaderboard",
-                              style:
-                                  TextStyle(fontSize: 50, color: Colors.black),
+                  Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      if (insertScore)
+                        Center(
+                            child: Column(
+                          children: <Widget>[
+                            const Text(
+                              "TOTAL SCORE",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                  decoration: TextDecoration.underline),
                             ),
-                          ),
-                          Table(
-                            columnWidths: const {
-                              0: FlexColumnWidth(1.0),
-                              1: FlexColumnWidth(3.0),
-                              2: FlexColumnWidth(1.0),
-                              3: FlexColumnWidth(3.0),
-                            },
-                            border: TableBorder.all(),
-                            children: [
-                              const TableRow(
-                                decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                ),
-                                children: <Widget>[
-                                  TableCell(
-                                    child: Text('Rank'),
+                            Text(
+                              total_score.toString(),
+                              style: const TextStyle(
+                                  fontSize: 50, color: Colors.blue),
+                            ),
+                          ],
+                        )),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: FutureBuilder<List<Map<String, dynamic>>>(
+                          future: results,
+                          builder:
+                              (BuildContext context, AsyncSnapshot snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            final results = snapshot.data;
+                            if (results.length == 0) {
+                              return const Center(
+                                child:
+                                    Text("Leaderboard empty!\nNo scores yet!"),
+                              );
+                            }
+                            int rank = 1;
+                            final tableRows = List<TableRow>.generate(
+                                min(results.length, top),
+                                (int index) => TableRow(
+                                      children: [
+                                        TableCell(
+                                          child: Container(
+                                            color: results[index]['name'] ==
+                                                        name &&
+                                                    results[index]['date']
+                                                            .toString() ==
+                                                        now.toIso8601String()
+                                                ? const Color.fromARGB(
+                                                    255, 127, 217, 255)
+                                                : Colors.white,
+                                            child: Text((rank++).toString()),
+                                          ),
+                                        ),
+                                        TableCell(
+                                          child: Container(
+                                            color: results[index]['name'] ==
+                                                        name &&
+                                                    results[index]['date']
+                                                            .toString() ==
+                                                        now.toIso8601String()
+                                                ? const Color.fromARGB(
+                                                    255, 127, 217, 255)
+                                                : Colors.white,
+                                            child: Text(results[index]['name']),
+                                          ),
+                                        ),
+                                        TableCell(
+                                          child: Container(
+                                            color: results[index]['name'] ==
+                                                        name &&
+                                                    results[index]['date']
+                                                            .toString() ==
+                                                        now.toIso8601String()
+                                                ? const Color.fromARGB(
+                                                    255, 127, 217, 255)
+                                                : Colors.white,
+                                            child: Text(results[index]['score']
+                                                .toString()),
+                                          ),
+                                        ),
+                                        TableCell(
+                                          child: Container(
+                                            color: results[index]['name'] ==
+                                                        name &&
+                                                    results[index]['date']
+                                                            .toString() ==
+                                                        now.toIso8601String()
+                                                ? const Color.fromARGB(
+                                                    255, 127, 217, 255)
+                                                : Colors.white,
+                                            child: Text(formattedDate(
+                                                results[index]['date']
+                                                    .toString())),
+                                          ),
+                                        ),
+                                      ],
+                                    ));
+                            return Column(children: <Widget>[
+                              Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(1.0),
+                                  1: FlexColumnWidth(3.0),
+                                  2: FlexColumnWidth(1.0),
+                                  3: FlexColumnWidth(3.0),
+                                },
+                                border: TableBorder.all(),
+                                children: [
+                                  const TableRow(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    children: <Widget>[
+                                      TableCell(
+                                        child: Text('Rank'),
+                                      ),
+                                      TableCell(
+                                        child: Text('Name'),
+                                      ),
+                                      TableCell(
+                                        child: Text('Score'),
+                                      ),
+                                      TableCell(
+                                        child: Text('Date'),
+                                      ),
+                                    ],
                                   ),
-                                  TableCell(
-                                    child: Text('Name'),
-                                  ),
-                                  TableCell(
-                                    child: Text('Score'),
-                                  ),
-                                  TableCell(
-                                    child: Text('Date'),
-                                  ),
+                                  ...tableRows,
                                 ],
-                              ),
-                              ...tableRows,
-                            ],
-                          )
-                        ]);
-                      },
-                    ),
+                              )
+                            ]);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Center(
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  total_score = 0;
+                                  Navigator.of(context)
+                                      .popUntil((route) => route.isFirst);
+                                },
+                                child: const Center(child: Text('Main menu')))),
+                      ),
+                    ],
+                  )),
+                  FutureBuilder<Map<String, int>>(
+                    future: leaderboardData,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          (snapshot.data!["minScore"]! <= total_score ||
+                              snapshot.data!["number"]! < top) &&
+                          !name_entered) {
+                        return SizedBox(
+                          height: MediaQuery.of(context).size.height -
+                              AppBar().preferredSize.height,
+                          child: ModalBarrier(
+                            dismissible: false,
+                            color: Colors.black.withOpacity(0.7),
+                          ),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(
-                        15), //apply padding to all four sides
-                    child: Center(
-                        child: ElevatedButton(
-                            onPressed: () {
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //       builder: (context) => const MainPage()),
-                              // );
-                              total_score = 0;
-                              Navigator.of(context)
-                                  .popUntil((route) => route.isFirst);
-                            },
-                            child: const Center(child: Text('Main menu')))),
+                  FutureBuilder<Map<String, int>>(
+                    future: leaderboardData,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          (snapshot.data!["minScore"]! <= total_score ||
+                              snapshot.data!["number"]! < top) &&
+                          !name_entered) {
+                        return Center(
+                            child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(15),
+                                child: Text(
+                                  style: const TextStyle(
+                                      fontSize: 32, color: Colors.white),
+                                  textAlign: TextAlign.center,
+                                  "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width /
+                                  2, //adjust width
+                              child: TextField(
+                                textAlign: TextAlign.center,
+                                controller: nameController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Enter your name',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                onSubmitted: (_) => _onButtonPressed(),
+                              ),
+                            ),
+                          ],
+                        ));
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
                   ),
                 ],
-              )),
-              FutureBuilder<Map<String, int>>(
-                future: leaderboardData,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData &&
-                      (snapshot.data!["minScore"]! <= total_score ||
-                          snapshot.data!["number"]! < top) &&
-                      !name_entered) {
-                    return SizedBox(
-                      height: MediaQuery.of(context).size.height -
-                          AppBar().preferredSize.height,
-                      child: ModalBarrier(
-                        dismissible: false,
-                        color: Colors.black.withOpacity(0.7),
-                      ),
-                    );
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
-              ),
-              FutureBuilder<Map<String, int>>(
-                future: leaderboardData,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData &&
-                      (snapshot.data!["minScore"]! <= total_score ||
-                          snapshot.data!["number"]! < top) &&
-                      !name_entered) {
-                    return Center(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(15),
-                            child: Text(
-                              style:
-                                  TextStyle(fontSize: 32, color: Colors.white),
-                              textAlign: TextAlign.center,
-                              "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width /
-                              2, //adjust width
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            controller: nameController,
-                            decoration: const InputDecoration(
-                              hintText: 'Enter your name',
-                              filled: true,
-                              fillColor: Colors.white,
-                            ),
-                            onSubmitted: (_) => _onButtonPressed(),
-                          ),
-                        ),
-                      ],
-                    ));
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
-              ),
-            ],
-          ))),
+              ))),
     );
   }
 }

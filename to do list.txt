@@ -1,16 +1,12 @@
 all pages:
-bgm?
+bgm? mute button
 set bg colour
 
 main page:
-add rules section
 render overflow issue by column and something else
 
 scoreboard page:
 add msg saying didnt make it into LeaderBoards if didnt make it
-
-log in page:
-how to do login? required?
 
 urgent
 app icon
