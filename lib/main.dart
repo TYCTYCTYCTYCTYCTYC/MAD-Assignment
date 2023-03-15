@@ -18,6 +18,7 @@ const bool test = true;
 
 bool insertScore = false;
 bool played = false;
+// bool enter = false;
 int total_score = 0;
 int level = min_level;
 const int min_level =
@@ -250,6 +251,7 @@ class _GameState extends State<Game> {
       score_list.add(score);
       score = 0;
       insertScore = true;
+      // enter = true;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LeaderboardPage()),
@@ -588,7 +590,6 @@ class LeaderboardPage extends StatefulWidget {
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
   bool name_entered = false;
-  bool enter = true;
   final nameController = TextEditingController();
   late DateTime now;
   late List<int> temp_score_list;
@@ -644,7 +645,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     return WillPopScope(
       onWillPop: () async {
         total_score = 0;
-        enter = false;
+        // enter = false;
         Navigator.of(context).popUntil((route) => route.isFirst);
         return true;
       },
@@ -695,8 +696,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             final results = snapshot.data;
                             if (results.length == 0) {
                               return const Center(
-                                child:
-                                    Text("Leaderboard empty!\nNo scores yet!"),
+                                child: Text(
+                                    textAlign: TextAlign.center,
+                                    "Leaderboard empty!\nNo scores yet!"),
                               );
                             }
                             int rank = 1;
@@ -810,27 +812,28 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       ),
                     ],
                   )),
-                  FutureBuilder<Map<String, int>>(
-                    future: leaderboardData,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData &&
-                          (snapshot.data!["minScore"]! <= total_score ||
-                              snapshot.data!["number"]! < top) &&
-                          !name_entered) {
-                        return SizedBox(
-                          height: MediaQuery.of(context).size.height -
-                              AppBar().preferredSize.height,
-                          child: ModalBarrier(
-                            dismissible: false,
-                            color: Colors.black.withOpacity(0.7),
-                          ),
-                        );
-                      } else {
-                        return const SizedBox.shrink();
-                      }
-                    },
-                  ),
-                  if (enter)
+                  if (insertScore)
+                    FutureBuilder<Map<String, int>>(
+                      future: leaderboardData,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData &&
+                            (snapshot.data!["minScore"]! <= total_score ||
+                                snapshot.data!["number"]! < top) &&
+                            !name_entered) {
+                          return SizedBox(
+                            height: MediaQuery.of(context).size.height -
+                                AppBar().preferredSize.height,
+                            child: ModalBarrier(
+                              dismissible: false,
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                  if (insertScore)
                     FutureBuilder<Map<String, int>>(
                       future: leaderboardData,
                       builder: (context, snapshot) {
