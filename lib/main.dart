@@ -396,12 +396,37 @@ class _GameState extends State<Game> {
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.8,
                             child: Table(
-                              border: TableBorder.all(),
+                              // border: TableBorder.all(),
                               columnWidths: const <int, TableColumnWidth>{
                                 0: FlexColumnWidth(1),
                                 1: FlexColumnWidth(1),
                               },
                               children: <TableRow>[
+                                TableRow(
+                                  children: [
+                                    // transparent cell in the left column
+                                    TableCell(
+                                      child:
+                                          Container(color: Colors.transparent),
+                                    ),
+                                    // cell with content in the right column
+                                    TableCell(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(),
+                                          color: Colors.grey,
+                                        ),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(4.0),
+                                          child: Text(
+                                            'Score',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 for (int i = 0; i < score_list.length; i++)
                                   TableRow(
                                     decoration: BoxDecoration(
@@ -409,6 +434,10 @@ class _GameState extends State<Game> {
                                     ),
                                     children: <Widget>[
                                       TableCell(
+                                          child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(),
+                                        ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
@@ -416,8 +445,12 @@ class _GameState extends State<Game> {
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
-                                      ),
+                                      )),
                                       TableCell(
+                                          child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(),
+                                        ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
@@ -425,7 +458,7 @@ class _GameState extends State<Game> {
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
-                                      ),
+                                      )),
                                     ],
                                   ),
                                 TableRow(
@@ -433,19 +466,27 @@ class _GameState extends State<Game> {
                                     color: Colors.blue,
                                   ),
                                   children: <Widget>[
-                                    const TableCell(
-                                      child: Padding(
+                                    TableCell(
+                                        child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(),
+                                      ),
+                                      child: const Padding(
                                         padding: EdgeInsets.all(8.0),
                                         child: Text(
-                                          'Total Score',
+                                          'Total',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
-                                    ),
+                                    )),
                                     TableCell(
+                                        child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(),
+                                      ),
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
@@ -456,7 +497,7 @@ class _GameState extends State<Game> {
                                           ),
                                         ),
                                       ),
-                                    ),
+                                    )),
                                   ],
                                 ),
                               ],
@@ -660,255 +701,205 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           debugShowCheckedModeBanner: false,
           title: 'Mishy Panic!',
           home: Scaffold(
-              appBar: AppBar(
-                title:
-                    const Text('Leaderboard', style: TextStyle(fontSize: 30)),
-                centerTitle: true,
-                backgroundColor: Colors.blue,
-              ),
-              backgroundColor: const Color.fromARGB(255, 180, 231, 255),
-              // backgroundColor: Colors.red,
-              body: Center(
-                child: Container(
-                    color: Colors.white,
-                    child: Stack(
-                      children: <Widget>[
+            appBar: AppBar(
+              title: const Text('Leaderboard', style: TextStyle(fontSize: 30)),
+              centerTitle: true,
+              backgroundColor: Colors.blue,
+            ),
+            backgroundColor: const Color.fromARGB(255, 180, 231, 255),
+            body: Stack(
+              children: <Widget>[
+                Container(
+                  color: Colors.white,
+                  child: Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      if (insertScore)
                         Center(
                             child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            if (insertScore)
-                              Center(
-                                  child: Column(
-                                children: <Widget>[
-                                  const Text(
-                                    "TOTAL SCORE",
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.black,
-                                        decoration: TextDecoration.underline),
-                                  ),
-                                  Text(
-                                    total_score.toString(),
-                                    style: const TextStyle(
-                                        fontSize: 50, color: Colors.blue),
-                                  ),
-                                ],
-                              )),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              child: FutureBuilder<List<Map<String, dynamic>>>(
-                                future: results,
-                                builder: (BuildContext context,
-                                    AsyncSnapshot snapshot) {
-                                  if (!snapshot.hasData) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  }
-                                  final results = snapshot.data;
-                                  if (results.length == 0) {
-                                    return const Center(
-                                      child: Text(
-                                          textAlign: TextAlign.center,
-                                          "Leaderboard empty!\nNo scores yet!"),
-                                    );
-                                  }
-                                  int rank = 1;
-                                  final tableRows = List<TableRow>.generate(
-                                      min(results.length, top),
-                                      (int index) => TableRow(
-                                            children: [
-                                              TableCell(
-                                                child: Container(
-                                                  color: results[index]
-                                                                  ['name'] ==
-                                                              name &&
-                                                          results[index]
-                                                                      ['date']
-                                                                  .toString() ==
-                                                              now
-                                                                  .toIso8601String()
-                                                      ? const Color.fromARGB(
-                                                          255, 127, 217, 255)
-                                                      : Colors.white,
-                                                  child:
-                                                      Text((rank++).toString()),
-                                                ),
-                                              ),
-                                              TableCell(
-                                                child: Container(
-                                                  color: results[index]
-                                                                  ['name'] ==
-                                                              name &&
-                                                          results[index]
-                                                                      ['date']
-                                                                  .toString() ==
-                                                              now
-                                                                  .toIso8601String()
-                                                      ? const Color.fromARGB(
-                                                          255, 127, 217, 255)
-                                                      : Colors.white,
-                                                  child: Text(
-                                                      results[index]['name']),
-                                                ),
-                                              ),
-                                              TableCell(
-                                                child: Container(
-                                                  color: results[index]
-                                                                  ['name'] ==
-                                                              name &&
-                                                          results[index]
-                                                                      ['date']
-                                                                  .toString() ==
-                                                              now
-                                                                  .toIso8601String()
-                                                      ? const Color.fromARGB(
-                                                          255, 127, 217, 255)
-                                                      : Colors.white,
-                                                  child: Text(results[index]
-                                                          ['score']
-                                                      .toString()),
-                                                ),
-                                              ),
-                                              TableCell(
-                                                child: Container(
-                                                  color: results[index]
-                                                                  ['name'] ==
-                                                              name &&
-                                                          results[index]
-                                                                      ['date']
-                                                                  .toString() ==
-                                                              now
-                                                                  .toIso8601String()
-                                                      ? const Color.fromARGB(
-                                                          255, 127, 217, 255)
-                                                      : Colors.white,
-                                                  child: Text(formattedDate(
-                                                      results[index]['date']
-                                                          .toString())),
-                                                ),
-                                              ),
-                                            ],
-                                          ));
-                                  return Column(children: <Widget>[
-                                    Table(
-                                      columnWidths: const {
-                                        0: FlexColumnWidth(1.0),
-                                        1: FlexColumnWidth(3.0),
-                                        2: FlexColumnWidth(1.0),
-                                        3: FlexColumnWidth(3.0),
-                                      },
-                                      border: TableBorder.all(),
-                                      children: [
-                                        const TableRow(
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue,
-                                          ),
-                                          children: <Widget>[
-                                            TableCell(
-                                              child: Text('Rank'),
-                                            ),
-                                            TableCell(
-                                              child: Text('Name'),
-                                            ),
-                                            TableCell(
-                                              child: Text('Score'),
-                                            ),
-                                            TableCell(
-                                              child: Text('Date'),
-                                            ),
-                                          ],
-                                        ),
-                                        ...tableRows,
-                                      ],
-                                    )
-                                  ]);
-                                },
-                              ),
+                            const Text(
+                              "TOTAL SCORE",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                  decoration: TextDecoration.underline),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Center(
-                                  child: ElevatedButton(
-                                      onPressed: () {
-                                        total_score = 0;
-                                        Navigator.of(context)
-                                            .popUntil((route) => route.isFirst);
-                                      },
-                                      child: const Center(
-                                          child: Text('Main menu')))),
+                            Text(
+                              total_score.toString(),
+                              style: const TextStyle(
+                                  fontSize: 50, color: Colors.blue),
                             ),
                           ],
                         )),
-                        if (insertScore)
-                          FutureBuilder<Map<String, int>>(
-                            future: leaderboardData,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData &&
-                                  (snapshot.data!["minScore"]! <= total_score ||
-                                      snapshot.data!["number"]! < top) &&
-                                  !name_entered) {
-                                return SizedBox(
-                                  height: MediaQuery.of(context).size.height -
-                                      AppBar().preferredSize.height,
-                                  child: ModalBarrier(
-                                    dismissible: false,
-                                    color: Colors.black.withOpacity(0.7),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: FutureBuilder<List<Map<String, dynamic>>>(
+                          future: results,
+                          builder:
+                              (BuildContext context, AsyncSnapshot snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            final results = snapshot.data;
+                            if (results.length == 0) {
+                              return const Center(
+                                child: Text(
+                                    textAlign: TextAlign.center,
+                                    "Leaderboard empty!\nNo scores yet!"),
+                              );
+                            }
+                            int rank = 1;
+                            final tableRows = List<TableRow>.generate(
+                                min(results.length, top),
+                                (int index) => TableRow(
+                                      decoration: BoxDecoration(
+                                        color: results[index]['name'] == name &&
+                                                results[index]['date']
+                                                        .toString() ==
+                                                    now.toIso8601String()
+                                            ? const Color.fromARGB(
+                                                255, 127, 217, 255)
+                                            : Colors.white,
+                                      ),
+                                      children: [
+                                        TableCell(
+                                          child: Text((rank++).toString()),
+                                        ),
+                                        TableCell(
+                                          child: Text(results[index]['name']),
+                                        ),
+                                        TableCell(
+                                          child: Text(results[index]['score']
+                                              .toString()),
+                                        ),
+                                        TableCell(
+                                          child: Text(formattedDate(
+                                              results[index]['date']
+                                                  .toString())),
+                                        ),
+                                      ],
+                                    ));
+                            return Column(children: <Widget>[
+                              Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(1.0),
+                                  1: FlexColumnWidth(3.0),
+                                  2: FlexColumnWidth(1.0),
+                                  3: FlexColumnWidth(3.0),
+                                },
+                                border: TableBorder.all(),
+                                children: [
+                                  const TableRow(
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    children: <Widget>[
+                                      TableCell(
+                                        child: Text('Rank'),
+                                      ),
+                                      TableCell(
+                                        child: Text('Name'),
+                                      ),
+                                      TableCell(
+                                        child: Text('Score'),
+                                      ),
+                                      TableCell(
+                                        child: Text('Date'),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              } else {
-                                return const SizedBox.shrink();
-                              }
-                            },
+                                  ...tableRows,
+                                ],
+                              )
+                            ]);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Center(
+                            child: ElevatedButton(
+                                onPressed: () {
+                                  total_score = 0;
+                                  Navigator.of(context)
+                                      .popUntil((route) => route.isFirst);
+                                },
+                                child: const Center(child: Text('Main menu')))),
+                      ),
+                    ],
+                  )),
+                ),
+                if (insertScore)
+                  FutureBuilder<Map<String, int>>(
+                    future: leaderboardData,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          (snapshot.data!["minScore"]! <= total_score ||
+                              snapshot.data!["number"]! < top) &&
+                          !name_entered) {
+                        return SizedBox(
+                          height: MediaQuery.of(context).size.height -
+                              AppBar().preferredSize.height,
+                          child: ModalBarrier(
+                            dismissible: false,
+                            color: Colors.black.withOpacity(0.7),
                           ),
-                        if (insertScore)
-                          FutureBuilder<Map<String, int>>(
-                            future: leaderboardData,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData &&
-                                  (snapshot.data!["minScore"]! <= total_score ||
-                                      snapshot.data!["number"]! < top) &&
-                                  !name_entered) {
-                                return Center(
-                                    child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(15),
-                                        child: Text(
-                                          style: const TextStyle(
-                                              fontSize: 32,
-                                              color: Colors.white),
-                                          textAlign: TextAlign.center,
-                                          "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: MediaQuery.of(context).size.width /
-                                          2, //adjust width
-                                      child: TextField(
-                                        textAlign: TextAlign.center,
-                                        controller: nameController,
-                                        decoration: const InputDecoration(
-                                          hintText: 'Enter your name',
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                        ),
-                                        onSubmitted: (_) => _onButtonPressed(),
-                                      ),
-                                    ),
-                                  ],
-                                ));
-                              } else {
-                                return const SizedBox.shrink();
-                              }
-                            },
-                          ),
-                      ],
-                    )),
-              ))),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  ),
+                if (insertScore)
+                  FutureBuilder<Map<String, int>>(
+                    future: leaderboardData,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          (snapshot.data!["minScore"]! <= total_score ||
+                              snapshot.data!["number"]! < top) &&
+                          !name_entered) {
+                        return Center(
+                            child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(15),
+                                child: Text(
+                                  style: const TextStyle(
+                                      fontSize: 32, color: Colors.white),
+                                  textAlign: TextAlign.center,
+                                  "Congratulations!\nYour score is in the top ${top.toString()}!\nPlease enter player name:",
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width /
+                                  2, //adjust width
+                              child: TextField(
+                                textAlign: TextAlign.center,
+                                controller: nameController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Enter your name',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                onSubmitted: (_) => _onButtonPressed(),
+                              ),
+                            ),
+                          ],
+                        ));
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  ),
+              ],
+            ),
+          )),
     );
   }
 }

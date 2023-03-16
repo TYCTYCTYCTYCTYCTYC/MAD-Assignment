@@ -1,18 +1,9 @@
-all pages:
-bgm? mute button
-set bg colour
-
 scoreboard page:
 add msg saying didnt make it into LeaderBoards if didnt make it
-solve awkward highlighting when date row is pushed to 2 rows
-
-urgent
-app icon
 
 can do later (not urgent)
 how to pass information without using global variable? => how to add each page top different files
 unable to back on modal barrier active 
-ontapdown doesnt change to bop at the last remaining mishy of the level
 
 unresolved issues:
 resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s
