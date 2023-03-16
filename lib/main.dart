@@ -316,6 +316,7 @@ class _GameState extends State<Game> {
                                   onTapDown: (TapDownDetails details) {
                                     setState(() {
                                       if (index == remaining[0]) {
+                                        //some issue here, remaining can be empty
                                         score++;
                                         image_status[index] = 2;
                                         remaining.removeAt(0);

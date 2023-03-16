@@ -4,6 +4,7 @@ set bg colour
 
 scoreboard page:
 add msg saying didnt make it into LeaderBoards if didnt make it
+solve awkward highlighting when date row is pushed to 2 rows
 
 urgent
 app icon
