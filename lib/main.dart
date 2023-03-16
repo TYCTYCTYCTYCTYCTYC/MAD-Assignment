@@ -525,7 +525,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'test`',
+        title: 'Mishy Panic!',
         home: Scaffold(
             body: Center(
           child: SingleChildScrollView(
@@ -652,7 +652,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       },
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'test`',
+          title: 'Mishy Panic!',
           home: Scaffold(
               appBar: AppBar(
                 title:
