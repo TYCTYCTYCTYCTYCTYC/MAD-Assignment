@@ -1,6 +1,3 @@
-scoreboard page:
-add msg saying didnt make it into LeaderBoards if didnt make it
-
 can do later (not urgent)
 how to pass information without using global variable? => how to add each page top different files
 unable to back on modal barrier active 
@@ -8,3 +5,4 @@ unable to back on modal barrier active
 unresolved issues:
 resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s
 render overflow issue by column and something else => no keyboard on main page causes error to not occur anymore
+add msg saying didnt make it into LeaderBoards if didnt make it => not sure if i have any message to show if user didn't make it into lewaderboard anyway
