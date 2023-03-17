@@ -4,7 +4,7 @@ import 'package:mad_ass/leaderboard.dart';
 
 //testing purposes, test = true uses smaller testing values of min_level, max_level, top and _countdownTime
 //else use actual values
-const bool test = true;
+const bool test = false;
 
 bool insertScore = false;
 bool played = false;
