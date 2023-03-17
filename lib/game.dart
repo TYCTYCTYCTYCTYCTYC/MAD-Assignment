@@ -95,11 +95,6 @@ class _GameState extends State<Game> {
     });
   }
 
-  void bonk() async {
-    await SoundManager.playSound('audio/bonk.mp3');
-    print("bonk!");
-  }
-
   void promptCont() {
     timer.cancel();
     total_score += score;
@@ -202,7 +197,6 @@ class _GameState extends State<Game> {
                                 child: GestureDetector(
                                   onTapDown: (TapDownDetails details) {
                                     //play bonk.mp3
-                                    bonk();
 
                                     setState(() {
                                       if (index == remaining[0]) {
