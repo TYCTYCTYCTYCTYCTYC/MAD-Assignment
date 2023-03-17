@@ -1,17 +1,24 @@
 game:
-add bgm and bonk sound
+add bgm and bonk sound and mute button
 
 report:
-show screen capture of game => show flow of game from start to scores table + highlight additional gameplay features
+show screen capture of game => show flow of game from start to scores table + highlight additional gameplay features(bonk sound?, no score screen, lb highlight)
 source code
 
 video:
 <= 2 mins
 show face
 demo game
+must show:
+1.	That you can play 5 levels of game.
+2.	That you can end the game at the end of any of the levels.
+3.	That the player can enter his/name if the score achieved is good enough to enter the Top 25 score table.
+4.	That the name-score entry can be persistently stored on the mobile phone.
 
 others:
 improve UI (35%)
+choose relevant file codes to provide in report source code(main, home, game, leaderboard, asset images?, pubspec.yaml)
+extract apk file for sir
 
 unresolved issues:
 resolve timer issue where it is not actually 5 seconds => made it more accurate by setting precision to 0.1s
