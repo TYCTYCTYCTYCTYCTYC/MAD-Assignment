@@ -1,5 +1,5 @@
 game:
-add bgm and bonk sound
+extract apk for sir
 
 report:
 show screen capture of game => show flow of game from start to scores table + highlight additional gameplay features

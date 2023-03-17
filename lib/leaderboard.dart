@@ -156,13 +156,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        total_score = 0;
-        // enter = false;
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        return true;
-      },
-      child: MaterialApp(
+        onWillPop: () async {
+          total_score = 0;
+          // enter = false;
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          return true;
+        },
+        child: MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Mishy Panic!',
           home: Scaffold(
@@ -177,124 +177,136 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 Container(
                   color: Colors.white,
                   child: Center(
+                      child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
                       child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      if (insertScore)
-                        Center(
-                            child: Column(
-                          children: <Widget>[
-                            const Text(
-                              "TOTAL SCORE",
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                  decoration: TextDecoration.underline),
-                            ),
-                            Text(
-                              total_score.toString(),
-                              style: const TextStyle(
-                                  fontSize: 50, color: Colors.blue),
-                            ),
-                          ],
-                        )),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        child: FutureBuilder<List<Map<String, dynamic>>>(
-                          future: results,
-                          builder:
-                              (BuildContext context, AsyncSnapshot snapshot) {
-                            if (!snapshot.hasData) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            }
-                            final results = snapshot.data;
-                            if (results.length == 0) {
-                              return const Center(
-                                child: Text(
-                                    textAlign: TextAlign.center,
-                                    "Leaderboard empty!\nNo scores yet!"),
-                              );
-                            }
-                            int rank = 1;
-                            final tableRows = List<TableRow>.generate(
-                                min(results.length, top),
-                                (int index) => TableRow(
-                                      decoration: BoxDecoration(
-                                        color: results[index]['name'] == name &&
-                                                results[index]['date']
-                                                        .toString() ==
-                                                    now.toIso8601String()
-                                            ? const Color.fromARGB(
-                                                255, 127, 217, 255)
-                                            : Colors.white,
-                                      ),
-                                      children: [
-                                        TableCell(
-                                          child: Text((rank++).toString()),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 10, 0, 10)),
+                          if (insertScore)
+                            Center(
+                                child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                const Text(
+                                  "TOTAL SCORE",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                      decoration: TextDecoration.underline),
+                                ),
+                                Text(
+                                  total_score.toString(),
+                                  style: const TextStyle(
+                                      fontSize: 50, color: Colors.blue),
+                                ),
+                              ],
+                            )),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: FutureBuilder<List<Map<String, dynamic>>>(
+                              future: results,
+                              builder: (BuildContext context,
+                                  AsyncSnapshot snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                }
+                                final results = snapshot.data;
+                                if (results.length == 0) {
+                                  return const Center(
+                                    child: Text(
+                                        textAlign: TextAlign.center,
+                                        "Leaderboard empty!\nNo scores yet!"),
+                                  );
+                                }
+                                int rank = 1;
+                                final tableRows = List<TableRow>.generate(
+                                    min(results.length, top),
+                                    (int index) => TableRow(
+                                          decoration: BoxDecoration(
+                                            color: results[index]['name'] ==
+                                                        name &&
+                                                    results[index]['date']
+                                                            .toString() ==
+                                                        now.toIso8601String()
+                                                ? const Color.fromARGB(
+                                                    255, 127, 217, 255)
+                                                : Colors.white,
+                                          ),
+                                          children: [
+                                            TableCell(
+                                              child: Text((rank++).toString()),
+                                            ),
+                                            TableCell(
+                                              child:
+                                                  Text(results[index]['name']),
+                                            ),
+                                            TableCell(
+                                              child: Text(results[index]
+                                                      ['score']
+                                                  .toString()),
+                                            ),
+                                            TableCell(
+                                              child: Text(formattedDate(
+                                                  results[index]['date']
+                                                      .toString())),
+                                            ),
+                                          ],
+                                        ));
+                                return Column(children: <Widget>[
+                                  Table(
+                                    columnWidths: const {
+                                      0: FlexColumnWidth(1.0),
+                                      1: FlexColumnWidth(3.0),
+                                      2: FlexColumnWidth(1.0),
+                                      3: FlexColumnWidth(3.0),
+                                    },
+                                    border: TableBorder.all(),
+                                    children: [
+                                      const TableRow(
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue,
                                         ),
-                                        TableCell(
-                                          child: Text(results[index]['name']),
-                                        ),
-                                        TableCell(
-                                          child: Text(results[index]['score']
-                                              .toString()),
-                                        ),
-                                        TableCell(
-                                          child: Text(formattedDate(
-                                              results[index]['date']
-                                                  .toString())),
-                                        ),
-                                      ],
-                                    ));
-                            return Column(children: <Widget>[
-                              Table(
-                                columnWidths: const {
-                                  0: FlexColumnWidth(1.0),
-                                  1: FlexColumnWidth(3.0),
-                                  2: FlexColumnWidth(1.0),
-                                  3: FlexColumnWidth(3.0),
-                                },
-                                border: TableBorder.all(),
-                                children: [
-                                  const TableRow(
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                    ),
-                                    children: <Widget>[
-                                      TableCell(
-                                        child: Text('Rank'),
+                                        children: <Widget>[
+                                          TableCell(
+                                            child: Text('Rank'),
+                                          ),
+                                          TableCell(
+                                            child: Text('Name'),
+                                          ),
+                                          TableCell(
+                                            child: Text('Score'),
+                                          ),
+                                          TableCell(
+                                            child: Text('Date'),
+                                          ),
+                                        ],
                                       ),
-                                      TableCell(
-                                        child: Text('Name'),
-                                      ),
-                                      TableCell(
-                                        child: Text('Score'),
-                                      ),
-                                      TableCell(
-                                        child: Text('Date'),
-                                      ),
+                                      ...tableRows,
                                     ],
-                                  ),
-                                  ...tableRows,
-                                ],
-                              )
-                            ]);
-                          },
-                        ),
+                                  )
+                                ]);
+                              },
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: Center(
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      total_score = 0;
+                                      Navigator.of(context)
+                                          .popUntil((route) => route.isFirst);
+                                    },
+                                    child: const Center(
+                                        child: Text('Main menu')))),
+                          ),
+                        ],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(15),
-                        child: Center(
-                            child: ElevatedButton(
-                                onPressed: () {
-                                  total_score = 0;
-                                  Navigator.of(context)
-                                      .popUntil((route) => route.isFirst);
-                                },
-                                child: const Center(child: Text('Main menu')))),
-                      ),
-                    ],
+                    ),
                   )),
                 ),
                 if (insertScore)
@@ -364,7 +376,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   ),
               ],
             ),
-          )),
-    );
+          ),
+        ));
   }
 }
