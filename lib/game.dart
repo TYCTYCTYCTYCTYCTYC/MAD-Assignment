@@ -89,8 +89,15 @@ class _GameState extends State<Game> {
           image_status[remaining[0]] = 1;
           _startTimer();
         });
+      } else if (_countdownSeconds != 4) {
+        //play countdown-x.mp3
       }
     });
+  }
+
+  void bonk() async {
+    await SoundManager.playSound('audio/bonk.mp3');
+    print("bonk!");
   }
 
   void promptCont() {
@@ -194,6 +201,9 @@ class _GameState extends State<Game> {
                               return Material(
                                 child: GestureDetector(
                                   onTapDown: (TapDownDetails details) {
+                                    //play bonk.mp3
+                                    bonk();
+
                                     setState(() {
                                       if (index == remaining[0]) {
                                         //some issue here, remaining can be empty
